@@ -4,7 +4,7 @@ A web app that plays the **killer** in the board game *Terrorscape* (Ice Makes, 
 
 **Play it:** https://jourdo2k3.github.io/Terrorscape-Solo-Killer-App/
 
-**Current version:** v2.6
+**Current version:** v2.8
 
 The app sits "behind the screen." It holds the killer's deck and hand, decides his moves, and asks you only what the real rules make survivors reveal. You play the survivors on your physical board, and the app tells you where the killer goes and what he does.
 
@@ -16,6 +16,7 @@ The app sits "behind the screen." It holds the killer's deck and hand, decides h
 - **Two killer skill levels:** Tutorial and Normal, for games without traits
 - **Fear and health tracking** for each survivor, including fear removal, healing and Ophelia's Encouragement token
 - **Rescue countdown** once the radio is repaired
+- **A turn summary** after each of the killer's turns, so you can see exactly what he did
 
 ## How a game works
 1. **Setup.** Pick the map and the killer (the Mansion and the Butcher for now), then your 3 survivors. Then turn traits on or off:
@@ -28,8 +29,9 @@ The app sits "behind the screen." It holds the killer's deck and hand, decides h
    2. **Block tokens** you removed.
    3. **Public info:** keys on the key stand, and whether the radio is repaired.
    4. **Fear and health:** if anyone removed fear (Remove all fear, a Tranquilizer, Encouraging Words) or was healed, click their box in the top bar. The fear boxes lower their fear; clicking HURT flips it back to OK. You never say *how* it happened, only that it did.
-3. **The killer's turn.** The app plays the Butcher's turn and tells you what to do on the board: move his miniature, place blocks, and so on. When he uses [SEARCH] or [SENSE], answer honestly. When he gives fear, confirm who took it, who was overwhelmed (the app pre-fills this from its own count), or who cancelled it with an Encouragement token. Encounters are resolved at the table with real dice, and the app just asks whether the attack was repelled or someone was injured.
-4. Repeat until someone wins.
+3. **The killer's turn.** The app plays the Butcher's turn in the right-hand panel, step by step, in large text. Anything you need to do on the board (move his miniature, place or remove a block, move the rescue token) is a numbered red step. When he uses [SEARCH] or [SENSE], the question appears at the bottom of the list: answer honestly. When he gives fear, confirm who took it, who was overwhelmed (the app pre-fills this from its own count), or who cancelled it with an Encouragement token. Encounters are resolved at the table with real dice, and the app just asks whether the attack was repelled or someone was injured.
+4. **His turn summary.** When he's done, the panel stays up as a summary: where he moved (the full path), where he is now (or that he slipped into stealth, and from where), the cards he played, the blocks he placed and anyone he found or injured, followed by the numbered steps. Catch up on the board, then press **Start Round N — Survivors' turn**.
+5. Repeat until someone wins.
 
 ### How the game ends
 - **The killer wins** automatically when a survivor is eliminated.
@@ -40,11 +42,11 @@ The app sits "behind the screen." It holds the killer's deck and hand, decides h
 Your game saves automatically in your browser, so you can close the page and resume later. There's also an **Undo** button for mistakes.
 
 ## The game screen
-- **Top bar:** the round, a box for each survivor (OK / HURT and their fear: 1, 2, and the noise token a 3rd fear would cause), the rescue countdown once it's running, and the ⚙ menu.
+- **Top bar:** the round and whose turn it is (it turns red during the killer's turn), a box for each survivor (OK / HURT and their fear: 1, 2, and the noise token a 3rd fear would cause), the rescue countdown once it's running, and the ⚙ menu.
 - **Left:** the map, which stays in place while you scroll, with the **killer box** underneath: his level, strength, encounter strength when a card has raised it for the turn, whether he's in stealth, and a mini-log of his last turn.
-- **Right:** your turn panel, the killer's traits (when he has any) and the full log.
+- **Right:** your turn panel (or the killer's turn and its summary), the killer's traits (when he has any) and the full log.
 
-On a phone everything stacks into one column.
+On a phone everything stacks into one column. On a tablet, the current question scrolls into view on its own.
 
 ## How the killer thinks
 The killer never sees where you are. He works it out the same way a human killer would.
@@ -55,6 +57,7 @@ The killer never sees where you are. He works it out the same way a human killer
   - **Honest answers** to [SEARCH], [SENSE] and fear are treated as certain. Anna is invisible to [SENSE], so her not being named tells him nothing.
   - **Fear and health changes** (Normal killer only). He only sees that fear came off or someone was healed, never how, so he weighs the likely causes. Fear removed might mean that survivor spent their action and stayed put, or that they used a hidden Tranquilizer (more likely as the game goes on), or that Ophelia used Encouraging Words. A heal suggests a teammate was in the same room, and that the healer stayed there; Herbal Medicine also makes noise in that room.
 - **Choosing a plan.** Each turn he picks what fits best: Revving Chainsaw when someone is likely within reach, a direct search when he's fairly sure of a room, Brutal Rage when it's worth the gamble, or a hunt toward the most likely area. He also blocks doors, guards the radio when repairs look advanced, and gets more aggressive once a rescue is called or all 5 keys are found.
+- **Why he did it.** With the killer's mind turned on (see Settings), each turn shows a "Why" box: his hand and the rooms he thought were likeliest at the start, how strong each option looked against what it needed, the plan he picked and the reason for each action.
 
 ## Difficulty
 There are two settings.
@@ -79,14 +82,16 @@ The killer always keeps the traits that suit him best.
 With traits on, the killer always plays at Normal skill.
 
 ## Settings (⚙)
-- **Show the killer's mind (spoilers).** Shows what the killer is thinking: a heat map of where he believes you are, his hand of cards, his estimate of your radio repairs, and how he's reading your lineup and your fear and health changes. It's useful for learning how the AI works or checking that it's behaving sensibly, but leave it off for a real game.
-- **Board images (optional).** The app draws its own schematic map. If you have your own image of the board, you can load it and line it up once, and the app will draw its tokens on top of it. Images stay in your browser only; no board art is included with the app.
+- **Show the killer's mind (spoilers).** Shows what the killer is thinking: a heat map of where he believes you are, his hand of cards, his estimate of your radio repairs, how he's reading your lineup and your fear and health changes, and the "Why" box on each of his turns. It's useful for learning how the AI works or checking that it's behaving sensibly, but leave it off for a real game.
+- **Copy game report (in the in-game ⚙ menu, and on the game-over screen).** Copies the whole game as text, including the killer's hidden reasoning for every turn, so a game can be reviewed afterwards. It's full of spoilers.
+- **Board images (optional).** The app draws its own schematic map. If you have your own image of the board, you can load it and line it up once, and the app will draw its tokens on top of it. If your Mansion image is 2400 × 1473 pixels, the app already knows where every room and door is. Images stay in your browser only; no board art is included with the app.
 
 ## Status
-- Tested in thousands of simulated games across every trait level, every individual trait, both killer skills, and survivors who remove fear and heal, with no errors or stuck games.
-- Difficulty is still being tuned through real play at my table.
+- Tested in thousands of simulated games across every trait level, every individual trait, both killer skills, and survivors who remove fear and heal, with no errors or stuck games. Newer test runs use simulated survivors that play to win: they repair the radio, search for keys, keep away from the killer and roll real dice.
+- Difficulty is still being tuned through real play at my table. The game report is how I'm collecting what the killer actually does.
 
 ## Plans
+- Tune the Normal killer from real games.
 - More killers. The Murderer and the Spectre are next.
 - More maps: the Cabin, the Laboratory, the Castle and the Tomb, with their special rules.
 - The rulebook's other variants: Separate Ways and Survival Plan.
