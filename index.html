@@ -1127,7 +1127,7 @@ const BOARD_MAPS = {
   tomb:       {name:'The Tomb', doors:[], rooms:{B1:'Cellar',B2:'Coffin Chamber',B3:'Atrium',B4:'Preparation Chamber',B5:'Hypostyle Hall',R1:'Archaeological Camp',R2:'Cliff',R3:'Vestibule',R4:'South Passage',R5:'East Passage',R6:'Relic Chamber',G1:'Burial Chamber',G2:'Ritual Chamber',G3:'Cave of Lament',G4:'Explosion Site',G5:'West Passage',G6:'North Passage'}}
 };
 // Starting estimates measured from Matt's 2400x1473 images (fractions of width/height). His own line-up always wins.
-const BOARD_PRESETS = {"mansion":{"rooms":{"B1":[0.3167,0.1969],"B2":[0.4917,0.224],"B3":[0.6583,0.1629],"B4":[0.8167,0.1969],"B5":[0.7,0.4345],"R1":[0.2917,0.4616],"R2":[0.3167,0.6925],"R3":[0.5,0.4481],"R4":[0.5417,0.5974],"R5":[0.4792,0.74],"G1":[0.4167,0.8826],"G2":[0.6042,0.8826],"G3":[0.8625,0.8554],"G4":[0.6833,0.7128],"G5":[0.8583,0.516]},"track":[[0.0283,0.2091],[0.0617,0.2091],[0.095,0.2091],[0.1271,0.2091],[0.1604,0.2091],[0.1929,0.2091]],"doors":{"B1|B2":[0.4004,0.1799],"B2|B3":[0.5671,0.1799],"B3|B4":[0.7512,0.1799],"B2|B5":[0.6133,0.313],"B4|G5":[0.84,0.3218],"B1|R1":[0.2946,0.3252],"B2|R1":[0.3825,0.3693],"B5|R3":[0.6133,0.446],"R1|R3":[0.3837,0.5642],"B5|R4":[0.6133,0.5791],"R1|R2":[0.2954,0.609],"R2|R3":[0.3837,0.6551],"G3|G4":[0.7529,0.7047],"R4|R5":[0.5592,0.6972],"R2|R5":[0.4129,0.7542],"G4|R5":[0.6133,0.7597],"G1|R2":[0.3671,0.8235]}},"cabin":{"rooms":{"R1":[0.35,0.8622],"R2":[0.4792,0.7604],"R3":[0.5708,0.516],"R4":[0.4167,0.5431],"R5":[0.4167,0.4073],"G1":[0.2667,0.7128],"G2":[0.2167,0.5431],"G3":[0.1375,0.258],"G4":[0.2833,0.2716],"G5":[0.4167,0.1629],"B1":[0.7083,0.8147],"B2":[0.8667,0.8011],"B3":[0.8542,0.5974],"B4":[0.7208,0.4752],"B5":[0.6458,0.224]},"track":[[0.0292,0.9077],[0.0596,0.9077],[0.0896,0.9077],[0.1187,0.9077],[0.1487,0.9077],[0.1779,0.9077]]},"laboratory":{"rooms":{"R1":[0.2583,0.1969],"R2":[0.2583,0.4345],"R3":[0.25,0.7604],"R4":[0.4292,0.1833],"R5":[0.575,0.2716],"B1":[0.4583,0.5635],"B2":[0.6042,0.4616],"B3":[0.5917,0.6246],"B4":[0.4792,0.8147],"B5":[0.6833,0.8215],"G1":[0.8542,0.8079],"G2":[0.7167,0.6246],"G3":[0.9042,0.5838],"G4":[0.8167,0.5771],"G5":[0.8542,0.2376]},"track":[[0.0283,0.8642],[0.0617,0.8642],[0.095,0.8642],[0.1271,0.8642],[0.1604,0.8642],[0.1929,0.8642]]},"castle":{"rooms":{"B1":[0.1667,0.7807],"B2":[0.2625,0.7468],"B3":[0.2875,0.3802],"B4":[0.5,0.4752],"B5":[0.7083,0.4413],"R1":[0.3875,0.3462],"R2":[0.5667,0.258],"R3":[0.7417,0.1969],"R4":[0.8667,0.1969],"R5":[0.8458,0.4752],"G1":[0.5417,0.835],"G2":[0.3667,0.7807],"G3":[0.5667,0.6246],"G4":[0.75,0.7807],"G5":[0.875,0.7807]},"track":[[0.025,0.516],[0.0583,0.516],[0.0908,0.516],[0.1237,0.516],[0.1571,0.516],[0.19,0.516]]},"tomb":{"rooms":{"B1":[0.5667,0.0916],"B2":[0.5625,0.258],"B3":[0.5625,0.5024],"B4":[0.5625,0.7196],"B5":[0.5625,0.8622],"R1":[0.7708,0.1901],"R2":[0.8958,0.4752],"R3":[0.875,0.8282],"R4":[0.725,0.8215],"R5":[0.7167,0.482],"R6":[0.6917,0.3259],"G1":[0.2583,0.1765],"G2":[0.2333,0.4752],"G3":[0.375,0.7671],"G4":[0.4167,0.611],"G5":[0.375,0.4888],"G6":[0.3958,0.146]},"track":[[0.0583,0.1256],[0.0583,0.1779],[0.0583,0.2322],[0.0583,0.2865],[0.0583,0.3408],[0.0583,0.3938]]}};
+const BOARD_PRESETS = {"mansion":{"rooms":{"B1":[0.3167,0.1969],"B2":[0.4917,0.224],"B3":[0.6583,0.1629],"B4":[0.8167,0.1969],"B5":[0.7,0.4345],"R1":[0.2917,0.4616],"R2":[0.3167,0.6925],"R3":[0.5,0.4481],"R4":[0.5417,0.5974],"R5":[0.4792,0.74],"G1":[0.4167,0.8826],"G2":[0.6042,0.8826],"G3":[0.8625,0.8554],"G4":[0.6833,0.7128],"G5":[0.8583,0.516]},"doors":{"B1|B2":[0.4004,0.1799],"B2|B3":[0.5671,0.1799],"B3|B4":[0.7512,0.1799],"B2|B5":[0.6133,0.313],"B4|G5":[0.84,0.3218],"B1|R1":[0.2946,0.3252],"B2|R1":[0.3825,0.3693],"B5|R3":[0.6133,0.446],"R1|R3":[0.3837,0.5642],"B5|R4":[0.6133,0.5791],"R1|R2":[0.2954,0.609],"R2|R3":[0.3837,0.6551],"G3|G4":[0.7529,0.7047],"R4|R5":[0.5592,0.6972],"R2|R5":[0.4129,0.7542],"G4|R5":[0.6133,0.7597],"G1|R2":[0.3671,0.8235]}},"cabin":{"rooms":{"R1":[0.35,0.8622],"R2":[0.4792,0.7604],"R3":[0.5708,0.516],"R4":[0.4167,0.5431],"R5":[0.4167,0.4073],"G1":[0.2667,0.7128],"G2":[0.2167,0.5431],"G3":[0.1375,0.258],"G4":[0.2833,0.2716],"G5":[0.4167,0.1629],"B1":[0.7083,0.8147],"B2":[0.8667,0.8011],"B3":[0.8542,0.5974],"B4":[0.7208,0.4752],"B5":[0.6458,0.224]}},"laboratory":{"rooms":{"R1":[0.2583,0.1969],"R2":[0.2583,0.4345],"R3":[0.25,0.7604],"R4":[0.4292,0.1833],"R5":[0.575,0.2716],"B1":[0.4583,0.5635],"B2":[0.6042,0.4616],"B3":[0.5917,0.6246],"B4":[0.4792,0.8147],"B5":[0.6833,0.8215],"G1":[0.8542,0.8079],"G2":[0.7167,0.6246],"G3":[0.9042,0.5838],"G4":[0.8167,0.5771],"G5":[0.8542,0.2376]}},"castle":{"rooms":{"B1":[0.1667,0.7807],"B2":[0.2625,0.7468],"B3":[0.2875,0.3802],"B4":[0.5,0.4752],"B5":[0.7083,0.4413],"R1":[0.3875,0.3462],"R2":[0.5667,0.258],"R3":[0.7417,0.1969],"R4":[0.8667,0.1969],"R5":[0.8458,0.4752],"G1":[0.5417,0.835],"G2":[0.3667,0.7807],"G3":[0.5667,0.6246],"G4":[0.75,0.7807],"G5":[0.875,0.7807]}},"tomb":{"rooms":{"B1":[0.5667,0.0916],"B2":[0.5625,0.258],"B3":[0.5625,0.5024],"B4":[0.5625,0.7196],"B5":[0.5625,0.8622],"R1":[0.7708,0.1901],"R2":[0.8958,0.4752],"R3":[0.875,0.8282],"R4":[0.725,0.8215],"R5":[0.7167,0.482],"R6":[0.6917,0.3259],"G1":[0.2583,0.1765],"G2":[0.2333,0.4752],"G3":[0.375,0.7671],"G4":[0.4167,0.611],"G5":[0.375,0.4888],"G6":[0.3958,0.146]}}};
 
 const BOARD = { mapId:MAP.id, url:null, img:null, w:0, h:0, cal:null, view:'schematic', scale:1, calib:null, stream:false, showSetup:false, ioText:'', ioMsg:'' };
 const bkey = id => 'terrorscape-board-' + id;
@@ -1184,7 +1184,6 @@ async function removeBoard(){
 function placeBoardImg(){ if(typeof document==='undefined') return; const ph=document.getElementById('bimg'); if(ph && ph.replaceWith && BOARD.img) ph.replaceWith(BOARD.img); }
 
 // ---- positions ----
-const trackOK = t => !!(t && t.length===6 && t.every(Boolean));
 const userCalOK = () => !!(BOARD.cal && BOARD.cal.rooms && mRooms().every(l=>BOARD.cal.rooms[l]));
 function presetFor(){
   const p = BOARD_PRESETS[BOARD.mapId]; if(!p || !BOARD.w || !BOARD.h) return null;
@@ -1193,7 +1192,7 @@ function presetFor(){
 }
 function curCal(){
   const p = presetFor();
-  if(userCalOK()){ const c=BOARD.cal; return {rooms:c.rooms, doors:c.doors||{}, track: trackOK(c.track) ? c.track : (p ? p.track : null)}; }
+  if(userCalOK()){ const c=BOARD.cal; return {rooms:c.rooms, doors:c.doors||{}}; }
   return p;
 }
 const calComplete = () => !!curCal();
@@ -1201,30 +1200,29 @@ function calStatus(id){
   const m = BOARD_MAPS[id], c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal);
   const n = o => o ? Object.keys(o).length : 0;
   return { rooms:Math.min(n(c&&c.rooms), Object.keys(m.rooms).length), roomsOf:Object.keys(m.rooms).length,
-           doors:n(c&&c.doors), doorsOf:m.doors.length, track:(c&&c.track||[]).filter(Boolean).length };
+           doors:n(c&&c.doors), doorsOf:m.doors.length };
 }
 
-// ---- lining up: rooms, then doors (where the app knows them), then the 6 repair-track spaces ----
-function calSteps(){ const m=META(); return [...mRooms().map(id=>({kind:'room',id})), ...m.doors.map(id=>({kind:'door',id})), ...[0,1,2,3,4,5].map(id=>({kind:'track',id}))]; }
+// ---- lining up: rooms, then doors (where the app knows them) ----
+function calSteps(){ const m=META(); return [...mRooms().map(id=>({kind:'room',id})), ...m.doors.map(id=>({kind:'door',id}))]; }
 const secStart = kind => calSteps().findIndex(s=>s.kind===kind);
 function stepLabel(st){
   if(st.kind==='room') return `the middle of <b>${roomName(st.id)}</b>`;
-  if(st.kind==='door'){ const [a,b]=st.id.split('|'); return `the door between <b>${roomName(a)}</b> and <b>${roomName(b)}</b>`; }
-  return st.id===0 ? 'the <b>gear (start) space</b> on the Estimated Repair Progress track' : `space <b>${st.id}</b> on the repair track`;
+  const [a,b]=st.id.split('|'); return `the door between <b>${roomName(a)}</b> and <b>${roomName(b)}</b>`;
 }
 function startCalib(from){
   if(!BOARD.img) return;
-  if(!BOARD.cal) BOARD.cal = {rooms:{}, doors:{}, track:[]};
-  BOARD.cal.doors = BOARD.cal.doors || {}; BOARD.cal.track = BOARD.cal.track || [];
-  let i = secStart(from==='doors'?'door':from==='track'?'track':'room');
-  if(i<0) i = secStart('track');
+  if(!BOARD.cal) BOARD.cal = {rooms:{}, doors:{}};
+  BOARD.cal.doors = BOARD.cal.doors || {}; delete BOARD.cal.track;
+  let i = secStart(from==='doors'?'door':'room');
+  if(i<0) return;
   BOARD.calib = {i, only: from==='rooms' ? null : from};
   render();
 }
 function calClick(fx, fy){
   const steps = calSteps(), st = steps[BOARD.calib.i]; if(!st) return;
   const p = [+fx.toFixed(4), +fy.toFixed(4)];
-  if(st.kind==='room') BOARD.cal.rooms[st.id]=p; else if(st.kind==='door') BOARD.cal.doors[st.id]=p; else BOARD.cal.track[st.id]=p;
+  if(st.kind==='room') BOARD.cal.rooms[st.id]=p; else BOARD.cal.doors[st.id]=p;
   BOARD.cal.w = BOARD.w; BOARD.cal.h = BOARD.h;
   BOARD.calib.i++; boardPrefsSave();
   const next = steps[BOARD.calib.i];
@@ -1235,7 +1233,7 @@ function calBack(){
   if(!BOARD.calib || BOARD.calib.i===0) return;
   const all=calSteps(); if(BOARD.calib.only && all[BOARD.calib.i-1].kind!==all[BOARD.calib.i].kind) return;
   BOARD.calib.i--; const st=calSteps()[BOARD.calib.i];
-  if(st.kind==='room') delete BOARD.cal.rooms[st.id]; else if(st.kind==='door') delete BOARD.cal.doors[st.id]; else BOARD.cal.track[st.id]=null;
+  if(st.kind==='room') delete BOARD.cal.rooms[st.id]; else delete BOARD.cal.doors[st.id];
   boardPrefsSave(); render();
 }
 function calSkip(){ // skip the rest of this section
@@ -1250,7 +1248,7 @@ function clearPositions(){ BOARD.cal=null; boardPrefsSave(); render(); }
 // ---- saving positions outside the browser ----
 function exportPositions(){
   const out = {};
-  for(const id of Object.keys(BOARD_MAPS)){ const c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal); if(c && c.rooms && Object.keys(c.rooms).length) out[id]=c; }
+  for(const id of Object.keys(BOARD_MAPS)){ const c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal); if(c && c.rooms && Object.keys(c.rooms).length){ const {track, ...rest} = c; out[id]=rest; } }
   return JSON.stringify(out);
 }
 function doExport(){
@@ -1264,7 +1262,7 @@ function doImport(){
   const el = typeof document!=='undefined' && document.getElementById('bio'); const txt = el ? el.value : BOARD.ioText;
   let o; try{ o = JSON.parse(txt); }catch(e){ BOARD.ioMsg='That text isn\'t a positions backup.'; return render(); }
   const got = [];
-  for(const id of Object.keys(BOARD_MAPS)) if(o && o[id] && o[id].rooms){ try{ localStorage.setItem(bkey(id), JSON.stringify({cal:o[id]})); got.push(BOARD_MAPS[id].name); }catch(e){} }
+  for(const id of Object.keys(BOARD_MAPS)) if(o && o[id] && o[id].rooms){ const {track, ...cal} = o[id]; try{ localStorage.setItem(bkey(id), JSON.stringify({cal})); got.push(BOARD_MAPS[id].name); }catch(e){} }
   loadCal(); BOARD.ioText = txt;
   BOARD.ioMsg = got.length ? `Loaded positions for ${got.join(', ')}.` : 'No map positions found in that text.';
   render();
@@ -1285,12 +1283,11 @@ const BDEFS = `<defs>
 const tok = (p, inner, extra='') => `<g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${BOARD.scale})" ${extra}>${inner}</g>`;
 function dotsSVG(c, cur){
   let s=''; if(!c) return s;
-  const rooms=c.rooms||{}, doors=c.doors||{}, track=c.track||[];
+  const rooms=c.rooms||{}, doors=c.doors||{};
   for(const l of mRooms()){ const r=rooms[l]; if(!r) continue;
     s += tok(P2(r), `<circle r="9" fill="var(--gold)" stroke="#000" stroke-width="2"/><text x="13" y="6" font-size="18" font-weight="800" fill="#fff" stroke="#000" stroke-width="4" paint-order="stroke">${l}</text>`); }
   for(const k of META().doors){ const d=doors[k]; if(!d) continue;
     s += tok(P2(d), `<rect x="-7" y="-7" width="14" height="14" rx="2" fill="#fff" stroke="#000" stroke-width="2"/>`); }
-  track.forEach((t,i)=>{ if(t) s += tok(P2(t), `<circle r="13" fill="none" stroke="#c9a8f0" stroke-width="4"/><text y="-17" font-size="14" font-weight="800" text-anchor="middle" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${i||'⚙'}</text>`); });
   if(cur && cur.kind==='door') for(const l of cur.id.split('|')) if(rooms[l]) s += tok(P2(rooms[l]), `<circle r="26" fill="none" stroke="var(--blood2)" stroke-width="4" stroke-dasharray="6 5"/>`);
   return s;
 }
@@ -1318,10 +1315,6 @@ function boardHTML(mode='game'){
       : tok(p, `<g filter="url(#bsh)" class="killer-tok"><circle r="30" fill="#b3271b" stroke="#fff" stroke-width="4"/><text y="10" font-size="28" text-anchor="middle">🔪</text></g>`);
   }
   if(S.stealth && S.mind){ const p=bp(S.killerLoc); s += tok({x:p.x+26*BOARD.scale, y:p.y+22*BOARD.scale}, `<circle r="15" fill="var(--purple)" stroke="#fff" stroke-width="2"/><text y="5" font-size="14" text-anchor="middle">🔪</text>`); }
-  // the killer's repair estimate on the track (hidden info, so only with the killer's mind on)
-  const trk = (curCal()||{}).track;
-  if(S.mind && trk){ const t=trk[Math.max(0,Math.min(5,Math.round(S.repairEst)))];
-    if(t) s += tok(P2(t), `<g filter="url(#bsh)"><circle r="21" fill="rgba(155,107,209,.35)" stroke="#c9a8f0" stroke-width="5"/></g><title>Killer's repair estimate: ${repDisp()}/5</title>`); }
   // chance labels
   if(any) for(const l of L){ const h=any[IX[l]]; if(h<0.01) continue; const p=bp(l);
     s += tok({x:p.x, y:p.y+50*BOARD.scale}, `<rect x="-26" y="-14" width="52" height="25" rx="12" fill="rgba(18,10,14,.82)" stroke="#9b6bd1" stroke-width="1.5"/><text y="5" font-size="16" font-weight="800" text-anchor="middle" fill="#f3d9ff">${Math.round(h*100)}%</text>`); }
@@ -1384,11 +1377,10 @@ function killerBox(){
 }
 function calibHTML(){
   const steps=calSteps(), i=BOARD.calib.i, st=steps[i];
-  const secs = {room:'Room', door:'Door', track:'Repair track'};
+  const secs = {room:'Room', door:'Door'};
   const inSec = steps.filter(s=>s.kind===st.kind), k = i - secStart(st.kind);
   const help = st.kind==='room' ? 'Click the middle of each room. The Butcher, noise and heat markers are drawn there.'
-    : st.kind==='door' ? 'Click each door so block tokens sit right on it. Doors are optional: skipped ones go halfway between the two rooms.'
-    : 'Click the 6 spaces of the Estimated Repair Progress track, starting with the gear. The killer\'s repair estimate is marked there. Optional.';
+    : 'Click each door so block tokens sit right on it. Doors are optional: skipped ones go halfway between the two rooms.';
   return `<main style="grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);grid-template-areas:'map side';max-width:none">
   <div class="a-map card calib" style="padding:8px">${boardHTML('calib')}</div>
   <div class="a-side card"><h2>Line up ${META().name}</h2>
@@ -1396,7 +1388,7 @@ function calibHTML(){
     <div class="prompt"><h3>${secs[st.kind]} ${k+1} of ${inSec.length}</h3><div>Click ${stepLabel(st)}.</div></div>
     <div class="row" style="margin-top:12px">
       ${i>0?'<button class="btn" data-act="calback">↶ Back</button>':''}
-      ${st.kind!=='room'?`<button class="btn primary" data-act="calskip">Skip ${st.kind==='door'?'the doors':'the track'}</button>`:''}
+      ${st.kind!=='room'?`<button class="btn primary" data-act="calskip">Skip the doors</button>`:''}
       <button class="btn ghost" data-act="calcancel">${userCalOK()?'Done':'Stop here'}</button>
     </div>
     <div class="small muted" style="margin-top:10px">Every click is saved as you go.</div></div></main>`;
@@ -1405,7 +1397,7 @@ function boardSetupHTML(){
   const ids = Object.keys(BOARD_MAPS), st = calStatus(BOARD.mapId), m = META();
   const tabs = ids.map(id=>`<button class="btn sm ${id===BOARD.mapId?'on':''}" data-act="bmap" data-m="${id}">${BOARD_MAPS[id].name}</button>`).join('');
   const table = ids.map(id=>{ const c=calStatus(id); const ok=(a,b)=>a>=b?'✓':`${a}/${b}`;
-    return `<tr><td>${BOARD_MAPS[id].name}</td><td>${ok(c.rooms,c.roomsOf)}</td><td>${c.doorsOf?ok(c.doors,c.doorsOf):'—'}</td><td>${ok(c.track,6)}</td></tr>`; }).join('');
+    return `<tr><td>${BOARD_MAPS[id].name}</td><td>${ok(c.rooms,c.roomsOf)}</td><td>${c.doorsOf?ok(c.doors,c.doorsOf):'—'}</td></tr>`; }).join('');
   const using = !BOARD.img ? '' : userCalOK() ? 'Using your own positions.' : presetFor() ? 'Using the built-in estimate until you line it up.' : 'Not lined up yet.';
   return `<main style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);grid-template-areas:'map side';max-width:none">
   <div class="a-map card" style="padding:8px"><div class="row" style="margin-bottom:8px">${tabs}</div>${BOARD.img ? boardHTML('preview') : loaderHTML()}</div>
@@ -1416,12 +1408,11 @@ function boardSetupHTML(){
     <div class="row" style="margin-top:8px">${fileBtn(BOARD.img?'Change image':'Choose image…')}
       ${BOARD.img?`<button class="btn sm primary" data-act="calib" data-from="rooms">Line up rooms (${st.rooms}/${st.roomsOf})</button>`:''}
       ${BOARD.img && m.doors.length?`<button class="btn sm" data-act="calib" data-from="doors">Doors (${st.doors}/${st.doorsOf})</button>`:''}
-      ${BOARD.img?`<button class="btn sm" data-act="calib" data-from="track">Repair track (${st.track}/6)</button>`:''}
     </div>
     <div class="row small" style="margin-top:6px">${BOARD.cal?'<button class="btn sm ghost" data-act="bclear">Clear this map\'s positions</button>':''}${BOARD.img?'<button class="btn sm ghost" data-act="bremove">Remove image</button>':''}</div>
     ${m.doors.length?'':'<div class="small muted" style="margin-top:6px">Doors for this map get lined up once the app can play it.</div>'}
     <h3>All maps</h3>
-    <table class="small" style="width:100%;border-collapse:collapse"><tr class="muted"><td>Map</td><td>Rooms</td><td>Doors</td><td>Track</td></tr>${table}</table>
+    <table class="small" style="width:100%;border-collapse:collapse"><tr class="muted"><td>Map</td><td>Rooms</td><td>Doors</td></tr>${table}</table>
     <h3>Back up positions</h3>
     <div class="row"><button class="btn sm" data-act="bexport">Copy positions</button><button class="btn sm" data-act="bimport">Load pasted positions</button></div>
     ${BOARD.ioMsg?`<div class="small" style="margin-top:6px">${BOARD.ioMsg}</div>`:''}
@@ -1609,7 +1600,7 @@ function setupHTML(saved){
 }
 function setHdr(){ const h=document.querySelector('header'); if(h && h.offsetHeight!==undefined && document.documentElement.style) document.documentElement.style.setProperty('--hdr', h.offsetHeight+'px'); }
 if(typeof window!=='undefined' && window.addEventListener) window.addEventListener('resize', ()=>setHdr());
-const APP_VERSION = 'v2.6';
+const APP_VERSION = 'v2.7';
 let GMENU = false; // in-game settings menu open
 let SAVED_CACHE;
 function render(){
