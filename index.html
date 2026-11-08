@@ -134,7 +134,14 @@ const DIFF = {
   hard:     {label:'Hard',      draw:4, keep:2, survTraits:true,  desc:'Each survivor draws 2 Survivor Traits and keeps 1. The Butcher draws 4 Killer Traits and keeps 2.'},
   nightmare:{label:'Nightmare', draw:6, keep:3, survTraits:true,  desc:'Each survivor draws 2 Survivor Traits and keeps 1. The Butcher draws 6 Killer Traits and keeps 3.'}
 };
-const EPS = 0.05; // small chance the Butcher picks a less obvious target, so he isn't fully predictable
+// Killer skill (only chosen in vanilla; with traits on he always plays as Normal)
+const SKILL = {
+  tutorial:{label:'Tutorial', desc:'For learning the game. He plays like a newer killer: chases the latest noise, assumes you stayed put, reacts turn to turn, spends his best cards early and sometimes picks a second-best move. Never breaks the rules.'},
+  normal:  {label:'Normal',   desc:'As good as he can be. He expects you to run from noise and from him, blocks your escape routes, saves his best cards and sets up his next turn.'}
+};
+const skillOf = () => (S && S.skill) || 'normal';
+const isTut = () => skillOf()==='tutorial';
+const diffLabel = st => st.diff==='vanilla' ? `Vanilla · ${SKILL[st.skill||'normal'].label} killer` : `Traits: ${DIFF[st.diff].label}`;
 // Killer trait cards. rank = how much this AI values the trait when choosing.
 const TRAITS = {
   fatal:     {name:'Fatal Attack', rank:9, text:'+1 strength.'},
@@ -182,7 +189,7 @@ const doorsAt = loc => NB[loc].filter(n=>EDGE[ekey(loc,n)].door);
 let S = null;          // game state
 let PROMPT = null;     // current question
 let HISTORY = [];      // undo snapshots
-let SETUP = {surv:[], diff:'normal', mind:false};
+let SETUP = {surv:[], traits:false, diff:'normal', skill:'normal', mind:false};
 const SAVE_KEY = 'terrorscape-solo-killer-v2';
 const rnd = () => Math.random();
 const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
@@ -195,12 +202,13 @@ function pickTraits(diff){
   const kept = drawn.slice().sort((a,b)=>(TRAITS[b].rank+rnd()*0.5)-(TRAITS[a].rank+rnd()*0.5)).slice(0, D.keep);
   return {drawn, kept};
 }
-function newGame(surv, diff, mind){
+function newGame(surv, diff, mind, skill='normal'){
+  if(diff!=='vanilla') skill='normal';
   const deck = [];
   for(const [id,c] of Object.entries(BUTCHER.cards)) if(!c.unlock) for(let i=0;i<c.n;i++) deck.push(id);
   const {drawn, kept} = pickTraits(diff);
   S = {
-    phase:'survivors', round:1, surv:surv.slice(), injured:{}, diff, mind, traits:kept, traitsDrawn:drawn.length,
+    phase:'survivors', round:1, surv:surv.slice(), injured:{}, diff, skill, mind, traits:kept, traitsDrawn:drawn.length,
     killerLoc: MAP.killerStart, level:1, baseStr:BUTCHER.baseStrength, tempStr:0,
     deck: shuffle(deck), hand:[], discard:[], blocks:[],
     belief:null, repairEst:0, keys:0, rescue:false, lastNoise:[],
@@ -212,7 +220,7 @@ function newGame(surv, diff, mind){
   HISTORY = [];
   logTurn('Setup');
   const D = DIFF[diff];
-  say(`Difficulty: <b>${D.label}</b>. ${D.desc}`, 'info');
+  say(`Difficulty: <b>${diffLabel(S)}</b>. ${D.desc}${diff==='vanilla'?' '+SKILL[skill].desc:' The Butcher plays at full strength.'}`, 'info');
   if(D.survTraits) say(`Survivors: each of you draws 2 Survivor Trait cards and keeps 1 (keep them secret unless the card says otherwise).`, 'do');
   if(kept.length){
     say(`The Butcher drew ${drawn.length} Killer Traits and keeps: ${kept.map(t=>`<b>${TRAITS[t].name}</b>`).join(', ')}. Find ${kept.length>1?'these cards':'this card'} and place ${kept.length>1?'them':'it'} face up — they are public.`, 'lvl');
@@ -291,16 +299,19 @@ function goalMult(i, loc){
 }
 // where the survivors believe the killer is (during [STEALTH] they only know where he vanished)
 const seenK = () => S.stealth ? S.visibleLoc : S.killerLoc;
-function survTrans(i, oneStep=false){
-  const id=S.surv[i], K=seenK();
+function survTrans(i, oneStep=false, Kover=null){
+  const id=S.surv[i], K=Kover||seenK(), tut=isTut();
   const maxD = oneStep?1:(id==='william'?3:2);
-  const base = oneStep?[0.4,0.6]:(id==='william'?[0.27,0.33,0.3,0.1]:[0.3,0.35,0.35]);
+  // Tutorial assumes people mostly stay put; Normal expects them to keep moving
+  const base = oneStep?[0.4,0.6]:(id==='william'?(tut?[0.45,0.25,0.2,0.1]:[0.27,0.33,0.3,0.1]):(tut?[0.5,0.3,0.2]:[0.3,0.35,0.35]));
+  const heard = S.lastNoise||[];
   const extra = oneStep?0:0.04; // Adrenaline: one more step
   const T=[];
   for(let f=0;f<NL;f++){
     const from=L[f];
     const nbFn = c => { const n=survPassable(c); if(id==='sophia' && !oneStep && PASS[c]) n.push(PASS[c]); return n; };
     const d = bfsFrom(from, nbFn);
+    const fleeNoise = !oneStep && !tut && heard.includes(from); // Normal: whoever made noise here expects him to come
     const cnt = new Array(maxD+2).fill(0);
     for(const l of L) if(d[l]!==undefined && d[l]<=maxD+1) cnt[d[l]]++;
     const row = new Float64Array(NL);
@@ -308,8 +319,11 @@ function survTrans(i, oneStep=false){
       if(d[l]!==undefined && d[l]<=maxD) w += base[d[l]]/cnt[d[l]];
       if(d[l]===maxD+1) w += extra/cnt[d[l]];
       if(!oneStep && id!=='sophia' && PASS[from]===l) w += 0.03;
-      const danger = l===K?0.25:(NB[K].includes(l)?0.7:1);
-      row[t] = w*danger*(oneStep?1:goalMult(i,l)); }
+      const dk = DK[K][l];
+      // Tutorial: survivors barely avoid him. Normal: they keep well clear (a little room left for daredevils).
+      const danger = tut ? (dk===0?0.5:(dk===1?0.9:1)) : (dk===0?0.1:(dk===1?0.45:(dk===2?0.85:1)));
+      const flee = fleeNoise ? (d[l]===0?0.45:(d[l]===1?1:1.25)) : 1;
+      row[t] = w*danger*flee*(oneStep?1:goalMult(i,l)); }
     let tot=0; for(let t=0;t<NL;t++) tot+=row[t]; for(let t=0;t<NL;t++) row[t]/=tot;
     T.push(row);
   }
@@ -459,7 +473,7 @@ function chooseBlockDoor(loc, avoid=[]){
   const goal = l => MAP.search.includes(l) || (l===MAP.radio && !S.rescue) || (S.keys>=5 && l===MAP.mainExit);
   let best=null, bs=-1;
   for(const n of doorsAt(loc)){ const k=ekey(loc,n); if(S.blocks.includes(k) || avoid.includes(k)) continue;
-    const sc = any[IX[n]] * (1 + (goal(loc)?0.8:0) + (goal(n)?0.4:0)) + rnd()*0.01;
+    const sc = any[IX[n]] * (1 + (goal(loc)?0.8:0) + (goal(n)?0.4:0)) + (isTut()?0:1.5*routeCut(k)) + rnd()*0.01;
     if(sc>bs){bs=sc;best=k;} }
   return best ? {k:best, score:bs} : null;
 }
@@ -573,14 +587,44 @@ function goalBonus(l){
   let b=0;
   if(S.keys>=5 && l===MAP.mainExit) b+=0.6;
   if(S.keys>=5 && l===MAP.hiddenExit) b+=0.15;
-  if(!S.rescue && l===MAP.radio) b+=0.08*S.repairEst;
+  if(!S.rescue && l===MAP.radio) b+=(isTut()?0.08:0.12)*S.repairEst;
   return b;
 }
 function huntTarget(noRandom=false){
   const {any} = marg(), K=S.killerLoc;
-  const scored = L.filter(l=> l!==K || any[IX[l]]>=0.1).map(l=>({l, s:(any[IX[l]]+goalBonus(l))/(1+0.12*DK[K][l])})).sort((a,b)=>b.s-a.s);
-  if(!noRandom && rnd()<EPS) return scored[Math.floor(rnd()*Math.min(4,scored.length))].l;
-  return scored[0].l;
+  const tut = isTut(), heard = S.lastNoise||[];
+  // Tutorial chases the latest noise harder than the evidence justifies
+  const nb = l => tut && heard.includes(l) ? 0.25 : 0;
+  const scored = L.filter(l=> l!==K || any[IX[l]]>=0.1).map(l=>({l, s:(any[IX[l]]+goalBonus(l)+nb(l))/(1+0.12*DK[K][l])})).sort((a,b)=>b.s-a.s);
+  if(noRandom) return scored[0].l;
+  if(tut){ if(scored.length>1 && rnd()<0.15) return scored[1+Math.floor(rnd()*Math.min(2,scored.length-1))].l; return scored[0].l; }
+  return nearBest(scored).l;
+}
+// Normal: unpredictable only between near-equal choices
+const nearBest = scored => { const top = scored.filter(x=>x.s >= scored[0].s*0.95 - 1e-9); return top[Math.floor(rnd()*top.length)]; };
+// Normal: where to finish this turn so next turn is strongest (predicts where they'll run from that spot)
+function bestStand(maxSteps){
+  const K=S.killerLoc, pursues=count('pursue'), R = 1 + (pursues>0||has('chainsaw')?1:0);
+  const out=[];
+  for(const x of L){ const dx=DK[K][x]; if(dx>maxSteps) continue;
+    const pred = marg(applyTrans(S.belief, S.surv.map((_,i)=>survTrans(i,false,x)))).any;
+    let th=0; for(const l of L){ const d=DK[x][l]; if(d<=R) th += pred[IX[l]]*(d===0?1:d===1?0.9:0.6); }
+    th += 0.5*goalBonus(x);
+    th *= (1 - 0.08*Math.max(0, dx-2)); // prefer not to burn Pursue cards getting there
+    out.push({l:x, s:th}); }
+  out.sort((a,b)=>b.s-a.s);
+  return out.length ? nearBest(out).l : K;
+}
+// Normal: how much blocking door k shrinks where likely survivors can run (2 steps, avoiding the killer)
+function routeCut(k){
+  const {any} = marg(), K=S.killerLoc, bad = new Set([K, ...NB[K]]);
+  const goal = l => MAP.search.includes(l) || (l===MAP.radio && !S.rescue) || (S.keys>=5 && l===MAP.mainExit);
+  const reach = (r, extra) => { const bl = new Set(S.blocks); if(extra) bl.add(extra);
+    const d = bfsFrom(r, c=>NB[c].filter(n=>!bl.has(ekey(c,n)))); let v=0;
+    for(const l in d) if(d[l]>=1 && d[l]<=2 && !bad.has(l)) v += goal(l)?1.5:1; return v; };
+  let s=0;
+  for(const r of L){ const p=any[IX[r]]; if(p<0.03) continue; const b=reach(r); if(b<=0) continue; s += p*(b-reach(r,k))/b; }
+  return s;
 }
 const aggression = () => (S.rescue || S.keys>=5) ? 0.08 : 0;
 
@@ -596,8 +640,8 @@ async function spendActions(n){
       if(nb && nb.p >= 0.3-aggression()){ stepTo(nb.l); continue; }
     }
     // guard the radio if repairs look advanced
-    if(!S.rescue && K===MAP.radio && S.repairEst>=3 && left===1){ say('The Butcher waits by the radio.', 'info'); continue; }
-    const T = huntTarget();
+    if(!S.rescue && K===MAP.radio && S.repairEst>=(isTut()?3:2) && left===1){ say('The Butcher waits by the radio.', 'info'); continue; }
+    const T = (S.turnFlags && S.turnFlags.stand) || huntTarget();
     if(T===K){ if(await doSearch()) return true; continue; }
     const path = killerPath(K, T); stepTo(path[1]);
   }
@@ -643,7 +687,7 @@ async function killerTurn(){
     for(const st of L){ if(DK[K][st] > pursues || !payable('chainsaw', Array(DK[K][st]).fill('pursue'))) continue;
       const ball = inRange(st,1); const val = Math.max(...ball.map(l=>any[IX[l]])) + 0.15*ball.reduce((t,l)=>t+any[IX[l]],0)/ball.length;
       if(!best || val>best.val || (val===best.val && DK[K][st]<DK[K][best.st])) best={st,val}; }
-    if(best && best.val >= 0.42-agg) plan={kind:'chainsaw', st:best.st};
+    if(best && best.val >= (isTut()?0.32:0.42)-agg) plan={kind:'chainsaw', st:best.st};
   }
   if(!plan){
     let best=null;
@@ -655,7 +699,10 @@ async function killerTurn(){
     for(const l of L){ const d=DK[K][l]; if(d<1 || d>pursues+2 || !payable('rage', Array(Math.max(0,d-2)).fill('pursue'))) continue; const p=any[IX[l]]; if(!best||p>best.p) best={l,p}; }
     if(best && best.p >= 0.28-agg) plan={kind:'rage', t:best.l};
   }
-  if(!plan) plan={kind:'hunt', t:huntTarget()};
+  if(!plan){
+    if(isTut()) plan={kind:'hunt', t:huntTarget()};
+    else { const st = bestStand(2+pursues); plan={kind:'hunt', t:st}; S.turnFlags.stand = st; }
+  }
 
   // 3) execute
   if(plan.kind==='chainsaw'){
@@ -673,10 +720,10 @@ async function killerTurn(){
       const door = chooseBlockDoor(K, avoid);
       if(door){ play('madness', keep); placeBlock(door.k); S.tempStr+=2; say(`Strength this turn: ${strength()}.`,'info'); finishCard('madness'); }
     }
-    await pursueToward(plan.t, 1);
+    await pursueToward(plan.t, (plan.kind==='hunt' && !isTut()) ? 2 : 1);
     if(S.level>=4 && has('chainsaw') && payable('chainsaw')){
       const a2 = marg().any; const ball = inRange(S.killerLoc,1);
-      if(Math.max(...ball.map(l=>a2[IX[l]])) >= 0.4-agg){ encountered = await doChainsaw(); if(S.phase==='over') return; }
+      if(Math.max(...ball.map(l=>a2[IX[l]])) >= (isTut()?0.3:0.4)-agg){ encountered = await doChainsaw(); if(S.phase==='over') return; }
     }
     if(!encountered) encountered = await spendActions(2);
   }
@@ -685,7 +732,7 @@ async function killerTurn(){
   // 4) slow card + end-of-turn traits (only without an encounter)
   if(!encountered){
     const K2=S.killerLoc;
-    if(has('stay') && payable('stay') && K2===MAP.radio && S.repairEst>=3 && !S.rescue && doorsAt(K2).some(n=>!S.blocks.includes(ekey(K2,n)))){
+    if(has('stay') && payable('stay') && K2===MAP.radio && S.repairEst>=(isTut()?3:2) && !S.rescue && doorsAt(K2).some(n=>!S.blocks.includes(ekey(K2,n)))){
       play('stay'); doorsAt(K2).forEach(n=>{ const k=ekey(K2,n); if(!S.blocks.includes(k)) placeBlock(k); }); finishCard('stay');
     } else if(has('barricade')){
       const door = chooseBlockDoor(K2);
@@ -935,9 +982,14 @@ function setupHTML(saved){
     ${saved?`<div class="prompt"><h3>Game in progress</h3><div class="small">Round ${saved.round} with ${saved.surv.map(sname).join(', ')}.</div><div class="row" style="margin-top:8px"><button class="btn primary" data-act="resume">Resume</button><button class="btn" data-act="discard-save">Discard it</button></div></div>`:''}
     <h3>Choose 3 survivors (${SETUP.surv.length}/3)</h3>
     <div class="surv-pick">${SURVIVORS.map(s=>`<button class="surv ${SETUP.surv.includes(s.id)?'on':''}" data-act="pick" data-id="${s.id}"><b>${s.name}</b><span>${s.note}</span></button>`).join('')}</div>
-    <h3>Difficulty</h3>
-    <div class="row">${Object.entries(DIFF).map(([k,d])=>`<button class="btn ${SETUP.diff===k?'on':''}" data-act="diff" data-k="${k}">${d.label}</button>`).join('')}</div>
-    <div class="small muted" style="margin-top:6px">${DIFF[SETUP.diff].desc}${DIFF[SETUP.diff].draw?' The Butcher keeps the traits that suit him best.':''}</div>
+    <h3>Traits</h3>
+    <div class="row"><button class="btn ${!SETUP.traits?'on':''}" data-act="traits" data-v="0">Off (vanilla)</button><button class="btn ${SETUP.traits?'on':''}" data-act="traits" data-v="1">On (rulebook variant)</button></div>
+    ${SETUP.traits ? `<h3>Trait level</h3>
+    <div class="row">${Object.entries(DIFF).filter(([k])=>k!=='vanilla').map(([k,d])=>`<button class="btn ${SETUP.diff===k?'on':''}" data-act="diff" data-k="${k}">${d.label}</button>`).join('')}</div>
+    <div class="small muted" style="margin-top:6px">${DIFF[SETUP.diff].desc}${DIFF[SETUP.diff].draw?' The Butcher keeps the traits that suit him best.':''} The Butcher plays at full strength (Normal killer).</div>`
+    : `<h3>Killer</h3>
+    <div class="row">${Object.entries(SKILL).map(([k,d])=>`<button class="btn ${SETUP.skill===k?'on':''}" data-act="skill" data-k="${k}">${d.label}</button>`).join('')}</div>
+    <div class="small muted" style="margin-top:6px">No trait cards on either side. ${SKILL[SETUP.skill].desc}</div>`}
     <label class="tog"><input type="checkbox" data-act="mind" ${SETUP.mind?'checked':''}> Show the killer's mind (heat map + hand — spoilers, for testing)</label>
     <div class="row" style="margin-top:12px"><button class="btn primary" data-act="start" ${SETUP.surv.length===3?'':'disabled style="opacity:.5"'}>Start game</button></div>
   </div></main>`;
@@ -959,7 +1011,7 @@ function render(){
   } else {
     side = `<div class="card"><h2>The Butcher's turn</h2><div class="small muted">Follow the instructions in the log, moving his miniature and tokens on your map. Answer honestly when he asks.</div>${promptHTML()}${PROMPT?'':'<div class="muted small" style="margin-top:10px">…</div>'}</div>`;
   }
-  const traitsCard = (S.traits&&S.traits.length) ? `<details class="card" style="margin-bottom:14px"><summary style="cursor:pointer"><b style="color:var(--purple)">Butcher's traits</b> <span class="small muted">(${DIFF[S.diff].label} — public, tap to read)</span>: ${S.traits.map(t=>TRAITS[t].name).join(', ')}</summary>${S.traits.map(t=>`<div class="small" style="margin-top:8px"><b>${TRAITS[t].name}</b> — ${TRAITS[t].text}</div>`).join('')}</details>` : `<div class="small muted" style="margin:0 0 10px 4px">${DIFF[S.diff]?DIFF[S.diff].label:''}: the Butcher has no traits.</div>`;
+  const traitsCard = (S.traits&&S.traits.length) ? `<details class="card" style="margin-bottom:14px"><summary style="cursor:pointer"><b style="color:var(--purple)">Butcher's traits</b> <span class="small muted">(${diffLabel(S)} — public, tap to read)</span>: ${S.traits.map(t=>TRAITS[t].name).join(', ')}</summary>${S.traits.map(t=>`<div class="small" style="margin-top:8px"><b>${TRAITS[t].name}</b> — ${TRAITS[t].text}</div>`).join('')}</details>` : `<div class="small muted" style="margin:0 0 10px 4px">${DIFF[S.diff]?diffLabel(S):''}: the Butcher has no traits.</div>`;
   app.innerHTML = head + `<main><div class="a-map card" style="padding:8px">${mapPanel()}</div>${S.mind?`<div class="a-mind">${mindHTML()}</div>`:''}
     <div class="a-side">${traitsCard}${side}<div class="card" style="margin-top:14px"><h2>Log</h2><div class="log">${logHTML()}</div></div></div></main>`;
   if(PROMPT && window.innerWidth<900){ const el=document.querySelector('.prompt'); if(el) el.scrollIntoView({block:'nearest', behavior:'smooth'}); }
@@ -975,7 +1027,9 @@ document.addEventListener('click', e=>{
   // setup
   if(a==='pick'){ const id=el.dataset.id; if(SETUP.surv.includes(id)) SETUP.surv=SETUP.surv.filter(x=>x!==id); else if(SETUP.surv.length<3) SETUP.surv.push(id); return render(); }
   if(a==='diff'){ SETUP.diff=el.dataset.k; return render(); }
-  if(a==='start'){ if(SETUP.surv.length===3) newGame(SETUP.surv, SETUP.diff, SETUP.mind); return; }
+  if(a==='traits'){ SETUP.traits = el.dataset.v==='1'; if(SETUP.diff==='vanilla') SETUP.diff='normal'; return render(); }
+  if(a==='skill'){ SETUP.skill=el.dataset.k; return render(); }
+  if(a==='start'){ if(SETUP.surv.length===3) newGame(SETUP.surv, SETUP.traits?SETUP.diff:'vanilla', SETUP.mind, SETUP.traits?'normal':SETUP.skill); return; }
   if(a==='resume'){ S=SAVED_CACHE; HISTORY=[]; return render(); }
   if(a==='discard-save'){ clearSave(); SAVED_CACHE=null; return render(); }
   if(a==='quit'){ S=null; PROMPT=null; SAVED_CACHE=loadSaved(); if(SAVED_CACHE && SAVED_CACHE.phase==='over') { clearSave(); SAVED_CACHE=null; } return render(); }
