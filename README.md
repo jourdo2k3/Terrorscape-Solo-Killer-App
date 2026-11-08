@@ -10,10 +10,15 @@ The app sits "behind the screen." It holds the killer's deck and hand, decides h
 - **Map:** The Mansion
 - **Killer:** The Butcher. The rulebook recommends him for a first game.
 - **Survivors:** all 9 (Anna, Caleb, Dylan, George, Johnson, Marco, Ophelia, Sophia, William), with their special abilities taken into account
-- **Killer traits:** all 20, used by the killer when difficulty calls for them
+- **Killer traits:** all 20, used by the killer when traits are turned on
+- **Two killer skill levels:** Tutorial and Normal, for games without traits
 
 ## How a game works
-1. **Setup.** Pick your 3 survivors and a difficulty, then start. The app tells you where the Butcher starts and which traits he has.
+1. **Setup.** Pick your 3 survivors. Then turn traits on or off:
+   - **Traits off:** choose the killer's skill, Tutorial or Normal.
+   - **Traits on:** choose one of the rulebook's trait levels (Easy, Normal, Hard or Nightmare).
+
+   Start the game, and the app tells you where the Butcher starts and which traits he has.
 2. **Your turn (survivors).** Play your turn at the table as normal. Then tell the app only what the rules say the killer learns:
    - where noise was made (tap the rooms on the map)
    - any block tokens you removed
@@ -30,33 +35,40 @@ The killer never sees where you are. He works it out the same way a human killer
   - **Noise** makes nearby rooms more likely, and **silence** makes the usual hiding spots (search rooms, the radio) less likely.
   - **Decoys** are accounted for. A Whiskey Bottle, Sophia's Camera or George's Note can make noise where nobody is.
   - **Honest answers** to [SEARCH], [SENSE] and fear are treated as certain. Anna is invisible to [SENSE], so her not being named tells him nothing.
-- **Choosing a plan.** Each turn he picks what fits best: Revving Chainsaw when someone is likely within reach, a direct search when he's fairly sure of a room, Brutal Rage when it's worth the gamble, or a hunt toward the most likely area. He also blocks doors toward likely rooms, guards the radio when repairs look advanced, and gets more aggressive once a rescue is called or all 5 keys are found.
-- **Not fully predictable.** About 5% of the time he goes after a less obvious target.
+- **Choosing a plan.** Each turn he picks what fits best: Revving Chainsaw when someone is likely within reach, a direct search when he's fairly sure of a room, Brutal Rage when it's worth the gamble, or a hunt toward the most likely area. He also blocks doors, guards the radio when repairs look advanced, and gets more aggressive once a rescue is called or all 5 keys are found.
 
-## Difficulty levels
-The levels follow the rulebook's Trait variant (p.27).
+## Difficulty
+There are two settings.
+
+### Traits: Off or On
+- **Off** is the vanilla game: no traits on either side.
+- **On** uses the rulebook's Trait variant (p.27), unchanged:
 
 | Level | Survivors | Killer |
 |---|---|---|
-| Vanilla | no traits | no traits |
 | Easy | each draws 2 traits, keeps 1 | no traits |
 | Normal | each draws 2 traits, keeps 1 | draws 2, keeps 1 |
 | Hard | each draws 2 traits, keeps 1 | draws 4, keeps 2 |
 | Nightmare | each draws 2 traits, keeps 1 | draws 6, keeps 3 |
 
-The killer always keeps the traits that suit him best. His play quality is the same at every level, so the difference comes from the traits.
+The killer always keeps the traits that suit him best.
+
+### Killer skill: Tutorial or Normal (traits off only)
+- **Tutorial** plays like a newer killer. He always follows the rules and still searches when it's obvious, but he chases the latest noise, assumes you stayed put, reacts one turn at a time, plays his good cards as soon as he has them, and blocks doors near himself. Now and then he picks a reasonable second-best option. He's beatable without being silly, which makes him a good way to learn the game.
+- **Normal** plays like an experienced killer. He expects you to run from noise and from him (though he allows for surprises), blocks your escape routes, and plans two turns ahead. He'll stop short to set up a chainsaw next turn, save his strong cards, and guard the radio early. He's only unpredictable when two choices are nearly equal.
+
+With traits on, the killer always plays at Normal skill.
 
 ## Show the killer's mind (spoilers)
 An optional toggle shows what the killer is thinking: a heat map of where he believes you are, his hand of cards, and his estimate of your radio repairs. It's useful for learning how the AI works or checking that it's behaving sensibly, but leave it off for a real game.
 
 ## Status
-- Tested in hundreds of simulated games across every difficulty level and every trait, with no errors or stuck games.
+- Tested in thousands of simulated games across every trait level, every individual trait, and both killer skills, with no errors or stuck games.
 - Difficulty is still being tuned through real play at my table.
 
 ## Plans
 - More killers. The Spectre and the Murderer are likely next.
 - More maps: the Cabin, the Laboratory, the Castle and the Tomb, with their special rules.
-- Smarter Hard and Nightmare play, such as predicting escape routes and planning two turns ahead.
 - The rulebook's other variants: Separate Ways and Survival Plan.
 
 ## How this was made
