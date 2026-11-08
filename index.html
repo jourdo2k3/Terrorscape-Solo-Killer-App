@@ -72,16 +72,6 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--blood)}
 .over{text-align:center;padding:30px 10px}
 .over h2{font-size:28px}
 a{color:var(--gold)}
-.boardwrap{position:relative;line-height:0;border-radius:8px;overflow:hidden;background:#000}
-.boardwrap img{width:100%;height:auto;display:block;user-select:none;-webkit-user-drag:none}
-.boardwrap svg.ov{position:absolute;inset:0;width:100%;height:100%}
-.ov .hit{cursor:pointer}
-.ov .hit:hover{fill:rgba(255,255,255,.12)}
-.calib svg.ov{cursor:crosshair}
-.killer-tok{animation:kpulse 2.4s ease-in-out infinite}
-@keyframes kpulse{50%{opacity:.82}}
-body.stream main{max-width:none;grid-template-columns:minmax(0,1.9fr) minmax(340px,1fr)}
-body.stream .log{max-height:60vh}
 </style>
 </head>
 <body>
@@ -836,303 +826,8 @@ function deserialize(txt){ const o=JSON.parse(txt); o.belief=Float64Array.from(o
 function save(){ try{ localStorage.setItem(SAVE_KEY, serialize()); }catch(e){} }
 function loadSaved(){ try{ const t=localStorage.getItem(SAVE_KEY); if(!t) return null; const o=deserialize(t); return (o.phase==='survivors'||o.phase==='over')?o:null; }catch(e){ return null; } }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
-
-/* ============================================================
-   BOARD IMAGE VIEW (your own map images, kept only in this browser)
-   ============================================================ */
-// Room lists for every map, so each board can be lined up now, even before the app can play it.
-const BOARD_MAPS = {
-  mansion:    {name:'The Mansion', rooms:Object.fromEntries(L.map(l=>[l,MAP.locs[l].n])), doors:EDGES.filter(e=>e.door).map(e=>ekey(e.a,e.b))},
-  cabin:      {name:'The Cabin', doors:[], rooms:{B1:'East Campground',B2:'Lakeview House',B3:'Lakeside',B4:'Bonfire Area',B5:'Pinetum Trail',R1:'Reception',R2:'Conference Center',R3:'Game Room',R4:'Room 102',R5:'Room 101',G1:'West Campground',G2:'Forest Track',G3:'Old Quarry',G4:'Cabin',G5:'North Trail'}},
-  laboratory: {name:'The Laboratory', doors:[], rooms:{B1:'Main Laboratory',B2:'Archive',B3:'Office',B4:'Generator Room',B5:'Limestone Cavern',R1:'Bio-Laboratory',R2:'Ancient Ruins',R3:'Abandoned Mine',R4:'Sterile Room',R5:'North Corridor',G1:'Elevator Lobby',G2:'Meeting Room',G3:'Medical Room',G4:'East Corridor',G5:'Lounge'}},
-  castle:     {name:'The Castle', doors:[], rooms:{B1:'Tower',B2:'West Hallway',B3:'Balcony',B4:'Statue Corridor',B5:'Entrance',R1:'Lever Control',R2:'Armory',R3:'Storehouse',R4:'Chamber',R5:'Hall of Nobles',G1:'Gatehouse',G2:'Cistern',G3:'Drawbridge',G4:'Flowerbed',G5:'Cellar'}},
-  tomb:       {name:'The Tomb', doors:[], rooms:{B1:'Cellar',B2:'Coffin Chamber',B3:'Atrium',B4:'Preparation Chamber',B5:'Hypostyle Hall',R1:'Archaeological Camp',R2:'Cliff',R3:'Vestibule',R4:'South Passage',R5:'East Passage',R6:'Relic Chamber',G1:'Burial Chamber',G2:'Ritual Chamber',G3:'Cave of Lament',G4:'Explosion Site',G5:'West Passage',G6:'North Passage'}}
-};
-// Starting estimates measured from 2400x1473 board images (fractions of width/height). A player's own line-up always wins.
-const BOARD_PRESETS = {"mansion":{"rooms":{"B1":[0.3167,0.1969],"B2":[0.4917,0.224],"B3":[0.6583,0.1629],"B4":[0.8167,0.1969],"B5":[0.7,0.4345],"R1":[0.2917,0.4616],"R2":[0.3167,0.6925],"R3":[0.5,0.4481],"R4":[0.5417,0.5974],"R5":[0.4792,0.74],"G1":[0.4167,0.8826],"G2":[0.6042,0.8826],"G3":[0.8625,0.8554],"G4":[0.6833,0.7128],"G5":[0.8583,0.516]},"track":[[0.0283,0.2091],[0.0617,0.2091],[0.095,0.2091],[0.1271,0.2091],[0.1604,0.2091],[0.1929,0.2091]],"doors":{"B1|B2":[0.4004,0.1799],"B2|B3":[0.5671,0.1799],"B3|B4":[0.7512,0.1799],"B2|B5":[0.6133,0.313],"B4|G5":[0.84,0.3218],"B1|R1":[0.2946,0.3252],"B2|R1":[0.3825,0.3693],"B5|R3":[0.6133,0.446],"R1|R3":[0.3837,0.5642],"B5|R4":[0.6133,0.5791],"R1|R2":[0.2954,0.609],"R2|R3":[0.3837,0.6551],"G3|G4":[0.7529,0.7047],"R4|R5":[0.5592,0.6972],"R2|R5":[0.4129,0.7542],"G4|R5":[0.6133,0.7597],"G1|R2":[0.3671,0.8235]}},"cabin":{"rooms":{"R1":[0.35,0.8622],"R2":[0.4792,0.7604],"R3":[0.5708,0.516],"R4":[0.4167,0.5431],"R5":[0.4167,0.4073],"G1":[0.2667,0.7128],"G2":[0.2167,0.5431],"G3":[0.1375,0.258],"G4":[0.2833,0.2716],"G5":[0.4167,0.1629],"B1":[0.7083,0.8147],"B2":[0.8667,0.8011],"B3":[0.8542,0.5974],"B4":[0.7208,0.4752],"B5":[0.6458,0.224]},"track":[[0.0292,0.9077],[0.0596,0.9077],[0.0896,0.9077],[0.1187,0.9077],[0.1487,0.9077],[0.1779,0.9077]]},"laboratory":{"rooms":{"R1":[0.2583,0.1969],"R2":[0.2583,0.4345],"R3":[0.25,0.7604],"R4":[0.4292,0.1833],"R5":[0.575,0.2716],"B1":[0.4583,0.5635],"B2":[0.6042,0.4616],"B3":[0.5917,0.6246],"B4":[0.4792,0.8147],"B5":[0.6833,0.8215],"G1":[0.8542,0.8079],"G2":[0.7167,0.6246],"G3":[0.9042,0.5838],"G4":[0.8167,0.5771],"G5":[0.8542,0.2376]},"track":[[0.0283,0.8642],[0.0617,0.8642],[0.095,0.8642],[0.1271,0.8642],[0.1604,0.8642],[0.1929,0.8642]]},"castle":{"rooms":{"B1":[0.1667,0.7807],"B2":[0.2625,0.7468],"B3":[0.2875,0.3802],"B4":[0.5,0.4752],"B5":[0.7083,0.4413],"R1":[0.3875,0.3462],"R2":[0.5667,0.258],"R3":[0.7417,0.1969],"R4":[0.8667,0.1969],"R5":[0.8458,0.4752],"G1":[0.5417,0.835],"G2":[0.3667,0.7807],"G3":[0.5667,0.6246],"G4":[0.75,0.7807],"G5":[0.875,0.7807]},"track":[[0.025,0.516],[0.0583,0.516],[0.0908,0.516],[0.1237,0.516],[0.1571,0.516],[0.19,0.516]]},"tomb":{"rooms":{"B1":[0.5667,0.0916],"B2":[0.5625,0.258],"B3":[0.5625,0.5024],"B4":[0.5625,0.7196],"B5":[0.5625,0.8622],"R1":[0.7708,0.1901],"R2":[0.8958,0.4752],"R3":[0.875,0.8282],"R4":[0.725,0.8215],"R5":[0.7167,0.482],"R6":[0.6917,0.3259],"G1":[0.2583,0.1765],"G2":[0.2333,0.4752],"G3":[0.375,0.7671],"G4":[0.4167,0.611],"G5":[0.375,0.4888],"G6":[0.3958,0.146]},"track":[[0.0583,0.1256],[0.0583,0.1779],[0.0583,0.2322],[0.0583,0.2865],[0.0583,0.3408],[0.0583,0.3938]]}};
-
-const BOARD = { mapId:MAP.id, url:null, img:null, w:0, h:0, cal:null, view:'schematic', scale:1, calib:null, stream:false, showSetup:false, ioText:'', ioMsg:'' };
-const bkey = id => 'terrorscape-board-' + id;
-const UIKEY = 'terrorscape-board-ui';
-const META = () => BOARD_MAPS[BOARD.mapId];
-const mRooms = () => Object.keys(META().rooms);
-const roomName = c => `${c} ${META().rooms[c]||''}`;
-function readPrefs(id){ try{ return JSON.parse(localStorage.getItem(bkey(id))||'null'); }catch(e){ return null; } }
-function loadCal(){ const o=readPrefs(BOARD.mapId); BOARD.cal = (o && o.cal) || null; }
-function boardPrefsLoad(){
-  loadCal();
-  let u=null; try{ u=JSON.parse(localStorage.getItem(UIKEY)||'null'); }catch(e){}
-  u = u || readPrefs(MAP.id) || {};
-  BOARD.view=u.view||'schematic'; BOARD.scale=u.scale||1; BOARD.stream=!!u.stream;
-}
-function boardPrefsSave(){ try{
-  localStorage.setItem(bkey(BOARD.mapId), JSON.stringify({cal:BOARD.cal}));
-  localStorage.setItem(UIKEY, JSON.stringify({view:BOARD.view, scale:BOARD.scale, stream:BOARD.stream}));
-}catch(e){} }
-function idb(){ return new Promise((res,rej)=>{ if(typeof indexedDB==='undefined') return rej(new Error('no indexedDB'));
-  const r=indexedDB.open('terrorscape-solo',1); r.onupgradeneeded=()=>r.result.createObjectStore('images'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-async function idbDo(mode, fn){ const db=await idb(); return new Promise((res,rej)=>{ const t=db.transaction('images',mode); const r=fn(t.objectStore('images')); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); }); }
-const idbGet = k => idbDo('readonly', st=>st.get(k));
-const idbPut = (k,v) => idbDo('readwrite', st=>st.put(v,k));
-const idbDel = k => idbDo('readwrite', st=>st.delete(k));
-function dropImg(){ if(BOARD.url) URL.revokeObjectURL(BOARD.url); BOARD.url=null; BOARD.img=null; BOARD.w=0; BOARD.h=0; }
-function useBlob(blob){ return new Promise(res=>{
-  const url = URL.createObjectURL(blob); const img = new Image();
-  img.onload = ()=>{ if(BOARD.url) URL.revokeObjectURL(BOARD.url); BOARD.url=url; BOARD.img=img; BOARD.w=img.naturalWidth; BOARD.h=img.naturalHeight; img.alt='Board'; img.draggable=false; res(true); };
-  img.onerror = ()=>{ URL.revokeObjectURL(url); res(false); };
-  img.src = url; }); }
-function applyStream(){ if(typeof document!=='undefined' && document.body && document.body.classList) document.body.classList.toggle('stream', BOARD.stream); }
-async function setBoardMap(id){
-  BOARD.mapId = id; BOARD.calib = null; loadCal(); dropImg();
-  try{ const b = await idbGet(id); if(b && BOARD.mapId===id) await useBlob(b); }catch(e){}
-  render();
-}
-async function boardInit(){
-  BOARD.mapId = MAP.id; boardPrefsLoad();
-  try{ const b = await idbGet(MAP.id); if(b) await useBlob(b); }catch(e){}
-  applyStream(); render();
-}
-async function loadBoardFile(file){
-  if(!file) return;
-  const ok = await useBlob(file); if(!ok) return render();
-  try{ await idbPut(BOARD.mapId, file); }catch(e){}
-  if(!BOARD.showSetup){ BOARD.view = 'board'; if(!calComplete()) return startCalib('rooms'); }
-  boardPrefsSave(); render();
-}
-async function removeBoard(){
-  try{ await idbDel(BOARD.mapId); }catch(e){}
-  dropImg(); if(!BOARD.showSetup) BOARD.view='schematic'; BOARD.calib=null; boardPrefsSave(); render();
-}
-function placeBoardImg(){ if(typeof document==='undefined') return; const ph=document.getElementById('bimg'); if(ph && ph.replaceWith && BOARD.img) ph.replaceWith(BOARD.img); }
-
-// ---- positions ----
-const trackOK = t => !!(t && t.length===6 && t.every(Boolean));
-const userCalOK = () => !!(BOARD.cal && BOARD.cal.rooms && mRooms().every(l=>BOARD.cal.rooms[l]));
-function presetFor(){
-  const p = BOARD_PRESETS[BOARD.mapId]; if(!p || !BOARD.w || !BOARD.h) return null;
-  const aspect = p.w && p.h ? p.w/p.h : 2400/1473;
-  return Math.abs(BOARD.w/BOARD.h - aspect) < 0.01 && mRooms().every(l=>p.rooms[l]) ? p : null;
-}
-function curCal(){
-  const p = presetFor();
-  if(userCalOK()){ const c=BOARD.cal; return {rooms:c.rooms, doors:c.doors||{}, track: trackOK(c.track) ? c.track : (p ? p.track : null)}; }
-  return p;
-}
-const calComplete = () => !!curCal();
-function calStatus(id){
-  const m = BOARD_MAPS[id], c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal);
-  const n = o => o ? Object.keys(o).length : 0;
-  return { rooms:Math.min(n(c&&c.rooms), Object.keys(m.rooms).length), roomsOf:Object.keys(m.rooms).length,
-           doors:n(c&&c.doors), doorsOf:m.doors.length, track:(c&&c.track||[]).filter(Boolean).length };
-}
-
-// ---- lining up: rooms, then doors (where the app knows them), then the 6 repair-track spaces ----
-function calSteps(){ const m=META(); return [...mRooms().map(id=>({kind:'room',id})), ...m.doors.map(id=>({kind:'door',id})), ...[0,1,2,3,4,5].map(id=>({kind:'track',id}))]; }
-const secStart = kind => calSteps().findIndex(s=>s.kind===kind);
-function stepLabel(st){
-  if(st.kind==='room') return `the middle of <b>${roomName(st.id)}</b>`;
-  if(st.kind==='door'){ const [a,b]=st.id.split('|'); return `the door between <b>${roomName(a)}</b> and <b>${roomName(b)}</b>`; }
-  return st.id===0 ? 'the <b>gear (start) space</b> on the Estimated Repair Progress track' : `space <b>${st.id}</b> on the repair track`;
-}
-function startCalib(from){
-  if(!BOARD.img) return;
-  if(!BOARD.cal) BOARD.cal = {rooms:{}, doors:{}, track:[]};
-  BOARD.cal.doors = BOARD.cal.doors || {}; BOARD.cal.track = BOARD.cal.track || [];
-  let i = secStart(from==='doors'?'door':from==='track'?'track':'room');
-  if(i<0) i = secStart('track');
-  BOARD.calib = {i, only: from==='rooms' ? null : from};
-  render();
-}
-function calClick(fx, fy){
-  const steps = calSteps(), st = steps[BOARD.calib.i]; if(!st) return;
-  const p = [+fx.toFixed(4), +fy.toFixed(4)];
-  if(st.kind==='room') BOARD.cal.rooms[st.id]=p; else if(st.kind==='door') BOARD.cal.doors[st.id]=p; else BOARD.cal.track[st.id]=p;
-  BOARD.cal.w = BOARD.w; BOARD.cal.h = BOARD.h;
-  BOARD.calib.i++; boardPrefsSave();
-  const next = steps[BOARD.calib.i];
-  if(!next || (BOARD.calib.only && next.kind!==st.kind)) return finishCalib();
-  render();
-}
-function calBack(){
-  if(!BOARD.calib || BOARD.calib.i===0) return;
-  const all=calSteps(); if(BOARD.calib.only && all[BOARD.calib.i-1].kind!==all[BOARD.calib.i].kind) return;
-  BOARD.calib.i--; const st=calSteps()[BOARD.calib.i];
-  if(st.kind==='room') delete BOARD.cal.rooms[st.id]; else if(st.kind==='door') delete BOARD.cal.doors[st.id]; else BOARD.cal.track[st.id]=null;
-  boardPrefsSave(); render();
-}
-function calSkip(){ // skip the rest of this section
-  const steps=calSteps(), kind=steps[BOARD.calib.i].kind;
-  let i=BOARD.calib.i; while(steps[i] && steps[i].kind===kind) i++;
-  if(!steps[i] || BOARD.calib.only) return finishCalib();
-  BOARD.calib.i=i; render();
-}
-function finishCalib(){ BOARD.calib=null; if(!BOARD.showSetup && calComplete()) BOARD.view='board'; boardPrefsSave(); render(); }
-function clearPositions(){ BOARD.cal=null; boardPrefsSave(); render(); }
-
-// ---- saving positions outside the browser ----
-function exportPositions(){
-  const out = {};
-  for(const id of Object.keys(BOARD_MAPS)){ const c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal); if(c && c.rooms && Object.keys(c.rooms).length) out[id]=c; }
-  return JSON.stringify(out);
-}
-function doExport(){
-  BOARD.ioText = exportPositions();
-  const n = Object.keys(JSON.parse(BOARD.ioText)).length;
-  BOARD.ioMsg = n ? `Positions for ${n} map${n>1?'s':''} are in the box below.` : 'No positions saved yet.';
-  try{ if(n && navigator.clipboard) navigator.clipboard.writeText(BOARD.ioText).then(()=>{ BOARD.ioMsg += ' Copied to the clipboard.'; render(); }, ()=>{}); }catch(e){}
-  render();
-}
-function doImport(){
-  const el = typeof document!=='undefined' && document.getElementById('bio'); const txt = el ? el.value : BOARD.ioText;
-  let o; try{ o = JSON.parse(txt); }catch(e){ BOARD.ioMsg='That text isn\'t a positions backup.'; return render(); }
-  const got = [];
-  for(const id of Object.keys(BOARD_MAPS)) if(o && o[id] && o[id].rooms){ try{ localStorage.setItem(bkey(id), JSON.stringify({cal:o[id]})); got.push(BOARD_MAPS[id].name); }catch(e){} }
-  loadCal(); BOARD.ioText = txt;
-  BOARD.ioMsg = got.length ? `Loaded positions for ${got.join(', ')}.` : 'No map positions found in that text.';
-  render();
-}
-
-// ---- drawing ----
-const BW = 1000;
-const BH = () => Math.round(BW*BOARD.h/BOARD.w);
-const CC = () => BOARD.calib ? BOARD.cal : curCal();
-const P2 = c => ({x:c[0]*BW, y:c[1]*BH()});
-function bp(l){ return P2(CC().rooms[l]); }
-function doorPt(k){ const cc=CC(), d=cc.doors && cc.doors[k]; if(d) return P2(d);
-  const [a,b]=k.split('|'), A=bp(a), B=bp(b); return {x:(A.x+B.x)/2, y:(A.y+B.y)/2}; }
-const BDEFS = `<defs>
-  <radialGradient id="bheat"><stop offset="0" stop-color="#ff3b2a" stop-opacity=".8"/><stop offset=".55" stop-color="#c0392b" stop-opacity=".4"/><stop offset="1" stop-color="#c0392b" stop-opacity="0"/></radialGradient>
-  <filter id="bsh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity=".75"/></filter>
-</defs>`;
-const tok = (p, inner, extra='') => `<g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${BOARD.scale})" ${extra}>${inner}</g>`;
-function dotsSVG(c, cur){
-  let s=''; if(!c) return s;
-  const rooms=c.rooms||{}, doors=c.doors||{}, track=c.track||[];
-  for(const l of mRooms()){ const r=rooms[l]; if(!r) continue;
-    s += tok(P2(r), `<circle r="9" fill="var(--gold)" stroke="#000" stroke-width="2"/><text x="13" y="6" font-size="18" font-weight="800" fill="#fff" stroke="#000" stroke-width="4" paint-order="stroke">${l}</text>`); }
-  for(const k of META().doors){ const d=doors[k]; if(!d) continue;
-    s += tok(P2(d), `<rect x="-7" y="-7" width="14" height="14" rx="2" fill="#fff" stroke="#000" stroke-width="2"/>`); }
-  track.forEach((t,i)=>{ if(t) s += tok(P2(t), `<circle r="13" fill="none" stroke="#c9a8f0" stroke-width="4"/><text y="-17" font-size="14" font-weight="800" text-anchor="middle" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${i||'⚙'}</text>`); });
-  if(cur && cur.kind==='door') for(const l of cur.id.split('|')) if(rooms[l]) s += tok(P2(rooms[l]), `<circle r="26" fill="none" stroke="var(--blood2)" stroke-width="4" stroke-dasharray="6 5"/>`);
-  return s;
-}
-function boardHTML(mode='game'){
-  const H = BH();
-  let s = `<div class="boardwrap"><span id="bimg"></span><svg class="ov" viewBox="0 0 ${BW} ${H}" preserveAspectRatio="none" ${mode==='calib'?'data-act="calclick"':''}>${BDEFS}`;
-  if(mode==='calib') return s + dotsSVG(BOARD.cal, calSteps()[BOARD.calib.i]) + `</svg></div>`;
-  if(mode==='preview') return s + dotsSVG(curCal() || BOARD.cal) + `</svg></div>`;
-  const any = S.mind ? marg().any : null;
-  const noiseSet = S.phase==='survivors' ? S.report.noise : S.lastNoise;
-  const shownK = S.stealth ? S.visibleLoc : S.killerLoc;
-  // heat map (killer's mind)
-  if(any) for(const l of L){ const h=any[IX[l]]; if(h<0.02) continue;
-    s += tok(bp(l), `<circle r="72" fill="url(#bheat)" opacity="${Math.min(1,0.3+h).toFixed(2)}"/>`); }
-  // block tokens
-  for(const k of S.blocks){ const gone = S.phase==='survivors' && S.report.removed.includes(k);
-    s += tok(doorPt(k), `<g filter="url(#bsh)" opacity="${gone?0.35:1}"><rect x="-17" y="-17" width="34" height="34" rx="6" fill="#f4efe9" stroke="#b3271b" stroke-width="3.5"/><path d="M-8,-8 L8,8 M8,-8 L-8,8" stroke="#b3271b" stroke-width="5" stroke-linecap="round"/></g>`); }
-  // noise tokens
-  for(const l of noiseSet){ const p=bp(l);
-    s += tok({x:p.x-38*BOARD.scale, y:p.y-30*BOARD.scale}, `<g filter="url(#bsh)"><path d="M0,-24 L22,14 L-22,14Z" fill="#f2c230" stroke="#3a2a00" stroke-width="3" stroke-linejoin="round"/><text y="10" font-size="24" font-weight="900" text-anchor="middle" fill="#2a1d00">!</text></g>`); }
-  // the Butcher / stealth token
-  if(shownK){ const p=bp(shownK);
-    s += S.stealth
-      ? tok(p, `<g filter="url(#bsh)"><circle r="28" fill="#2a2030" stroke="#c9a8f0" stroke-width="3.5" stroke-dasharray="6 4"/><text y="9" font-size="27" font-weight="800" text-anchor="middle" fill="#e6d4fb">?</text></g>`)
-      : tok(p, `<g filter="url(#bsh)" class="killer-tok"><circle r="30" fill="#b3271b" stroke="#fff" stroke-width="4"/><text y="10" font-size="28" text-anchor="middle">🔪</text></g>`);
-  }
-  if(S.stealth && S.mind){ const p=bp(S.killerLoc); s += tok({x:p.x+26*BOARD.scale, y:p.y+22*BOARD.scale}, `<circle r="15" fill="var(--purple)" stroke="#fff" stroke-width="2"/><text y="5" font-size="14" text-anchor="middle">🔪</text>`); }
-  // the killer's repair estimate on the track (hidden info, so only with the killer's mind on)
-  const trk = (curCal()||{}).track;
-  if(S.mind && trk){ const t=trk[Math.max(0,Math.min(5,S.repairEst))];
-    if(t) s += tok(P2(t), `<g filter="url(#bsh)"><circle r="21" fill="rgba(155,107,209,.35)" stroke="#c9a8f0" stroke-width="5"/></g><title>Killer's repair estimate: ${S.repairEst}/5</title>`); }
-  // chance labels
-  if(any) for(const l of L){ const h=any[IX[l]]; if(h<0.01) continue; const p=bp(l);
-    s += tok({x:p.x, y:p.y+50*BOARD.scale}, `<rect x="-26" y="-14" width="52" height="25" rx="12" fill="rgba(18,10,14,.82)" stroke="#9b6bd1" stroke-width="1.5"/><text y="5" font-size="16" font-weight="800" text-anchor="middle" fill="#f3d9ff">${Math.round(h*100)}%</text>`); }
-  // tap targets for marking noise
-  if(S.phase==='survivors') for(const l of L){ const p=bp(l);
-    s += `<circle class="hit" data-node="${l}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(58*BOARD.scale).toFixed(1)}" fill="transparent"><title>${nm(l)}</title></circle>`; }
-  return s + `</svg></div>`;
-}
-const fileBtn = (label, cls='btn sm') => `<label class="${cls}" style="display:inline-block">${label}<input type="file" accept="image/*" data-act="boardfile" hidden></label>`;
-function loaderHTML(){
-  return `<div class="prompt" style="margin:0"><h3>Use your own board image</h3>
-  <div class="small">Choose the ${META().name} board image from your computer, for example the Tabletop Simulator map. It's kept in this browser only. It isn't uploaded and isn't saved into the app.</div>
-  <div style="margin-top:10px">${fileBtn('Choose image…','btn primary')}</div></div>`;
-}
-function boardTools(){
-  return `<div class="row small" style="margin-top:8px">${fileBtn('Change image')}
-    <button class="btn sm" data-act="bsetup">Board setup</button>
-    <span class="muted">Token size</span><button class="btn sm" data-act="bscale" data-d="-0.1">−</button><b>${Math.round(BOARD.scale*100)}%</b><button class="btn sm" data-act="bscale" data-d="0.1">+</button></div>`;
-}
 function mapPanel(){
-  const tog = `<div class="row" style="margin-bottom:8px">
-    <button class="btn sm ${BOARD.view==='schematic'?'on':''}" data-act="view" data-v="schematic">Schematic</button>
-    <button class="btn sm ${BOARD.view==='board'?'on':''}" data-act="view" data-v="board">Board</button>
-    <span class="spacer"></span><button class="btn sm ${BOARD.stream?'on':''}" data-act="stream">Stream layout</button></div>`;
-  if(BOARD.view==='board'){
-    if(!BOARD.img) return tog + loaderHTML();
-    if(!calComplete()) return tog + `<div class="prompt" style="margin:0"><h3>Line up the board</h3><div class="small">Click each room on your image once so the app knows where to put its tokens. It's saved in this browser, and you can back it up from Board setup.</div><div class="row" style="margin-top:10px"><button class="btn primary" data-act="calib" data-from="rooms">Start</button></div></div>`;
-    return tog + boardHTML() + `<div class="small muted" style="margin-top:6px">⚠ noise · ✕ block token · 🔪 the Butcher · ? stealth token${S.phase==='survivors'?' · tap a room to mark noise':''}</div>` + boardTools();
-  }
-  return tog + mapSVG() + `<div class="small muted" style="margin-top:4px">Solid lines = doors · dashed green = open paths · purple = secret passages · ✕ = block token · ! = noise · 🔪 = the Butcher · ? = stealth token</div>`;
-}
-function calibHTML(){
-  const steps=calSteps(), i=BOARD.calib.i, st=steps[i];
-  const secs = {room:'Room', door:'Door', track:'Repair track'};
-  const inSec = steps.filter(s=>s.kind===st.kind), k = i - secStart(st.kind);
-  const help = st.kind==='room' ? 'Click the middle of each room. The Butcher, noise and heat markers are drawn there.'
-    : st.kind==='door' ? 'Click each door so block tokens sit right on it. Doors are optional: skipped ones go halfway between the two rooms.'
-    : 'Click the 6 spaces of the Estimated Repair Progress track, starting with the gear. The killer\'s repair estimate is marked there. Optional.';
-  return `<main style="grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);grid-template-areas:'map side';max-width:none">
-  <div class="a-map card calib" style="padding:8px">${boardHTML('calib')}</div>
-  <div class="a-side card"><h2>Line up ${META().name}</h2>
-    <div class="small muted">${help}</div>
-    <div class="prompt"><h3>${secs[st.kind]} ${k+1} of ${inSec.length}</h3><div>Click ${stepLabel(st)}.</div></div>
-    <div class="row" style="margin-top:12px">
-      ${i>0?'<button class="btn" data-act="calback">↶ Back</button>':''}
-      ${st.kind!=='room'?`<button class="btn primary" data-act="calskip">Skip ${st.kind==='door'?'the doors':'the track'}</button>`:''}
-      <button class="btn ghost" data-act="calcancel">${userCalOK()?'Done':'Stop here'}</button>
-    </div>
-    <div class="small muted" style="margin-top:10px">Every click is saved as you go.</div></div></main>`;
-}
-function boardSetupHTML(){
-  const ids = Object.keys(BOARD_MAPS), st = calStatus(BOARD.mapId), m = META();
-  const tabs = ids.map(id=>`<button class="btn sm ${id===BOARD.mapId?'on':''}" data-act="bmap" data-m="${id}">${BOARD_MAPS[id].name}</button>`).join('');
-  const table = ids.map(id=>{ const c=calStatus(id); const ok=(a,b)=>a>=b?'✓':`${a}/${b}`;
-    return `<tr><td>${BOARD_MAPS[id].name}</td><td>${ok(c.rooms,c.roomsOf)}</td><td>${c.doorsOf?ok(c.doors,c.doorsOf):'—'}</td><td>${ok(c.track,6)}</td></tr>`; }).join('');
-  const using = !BOARD.img ? '' : userCalOK() ? 'Using your own positions.' : presetFor() ? 'Using the built-in estimate until you line it up.' : 'Not lined up yet.';
-  return `<main style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);grid-template-areas:'map side';max-width:none">
-  <div class="a-map card" style="padding:8px"><div class="row" style="margin-bottom:8px">${tabs}</div>${BOARD.img ? boardHTML('preview') : loaderHTML()}</div>
-  <div class="a-side card"><h2>Board setup</h2>
-    <div class="small muted">Line up each map's image once. Positions save in this browser as you click. Use <b>Copy positions</b> to back them up or share them.</div>
-    <h3>${m.name}</h3>
-    <div class="small">${BOARD.img?`Image loaded (${BOARD.w} × ${BOARD.h}). ${using}`:'No image loaded for this map in this browser.'}</div>
-    <div class="row" style="margin-top:8px">${fileBtn(BOARD.img?'Change image':'Choose image…')}
-      ${BOARD.img?`<button class="btn sm primary" data-act="calib" data-from="rooms">Line up rooms (${st.rooms}/${st.roomsOf})</button>`:''}
-      ${BOARD.img && m.doors.length?`<button class="btn sm" data-act="calib" data-from="doors">Doors (${st.doors}/${st.doorsOf})</button>`:''}
-      ${BOARD.img?`<button class="btn sm" data-act="calib" data-from="track">Repair track (${st.track}/6)</button>`:''}
-    </div>
-    <div class="row small" style="margin-top:6px">${BOARD.cal?'<button class="btn sm ghost" data-act="bclear">Clear this map\'s positions</button>':''}${BOARD.img?'<button class="btn sm ghost" data-act="bremove">Remove image</button>':''}</div>
-    ${m.doors.length?'':'<div class="small muted" style="margin-top:6px">Doors for this map get lined up once the app can play it.</div>'}
-    <h3>All maps</h3>
-    <table class="small" style="width:100%;border-collapse:collapse"><tr class="muted"><td>Map</td><td>Rooms</td><td>Doors</td><td>Track</td></tr>${table}</table>
-    <h3>Back up positions</h3>
-    <div class="row"><button class="btn sm" data-act="bexport">Copy positions</button><button class="btn sm" data-act="bimport">Load pasted positions</button></div>
-    ${BOARD.ioMsg?`<div class="small" style="margin-top:6px">${BOARD.ioMsg}</div>`:''}
-    <textarea id="bio" spellcheck="false" placeholder="Positions text appears here. Paste a backup here to load it." style="width:100%;height:90px;margin-top:6px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;font:12px monospace">${BOARD.ioText.replace(/</g,'&lt;')}</textarea>
-    <div class="row" style="margin-top:12px"><button class="btn primary" data-act="bsetupclose">Done</button></div>
-  </div></main>`;
-}
-function boardScreenHTML(){
-  if(BOARD.calib && BOARD.img) return calibHTML();
-  if(BOARD.showSetup) return boardSetupHTML();
-  return null;
-}
-function setupBoardHTML(){
-  const status = !BOARD.img ? 'Not loaded. The app uses its own schematic map.' : userCalOK() ? 'Loaded and lined up.' : calComplete() ? 'Loaded, using the built-in estimate.' : 'Loaded, but not lined up yet.';
-  return `<h3>Board image (optional)</h3>
-  <div class="small muted">Show the game on your own board images, for example the Tabletop Simulator maps. They stay in this browser only. Mansion: <b style="color:var(--text)">${status}</b></div>
-  <div class="row" style="margin-top:6px"><button class="btn sm" data-act="bsetup">Board setup (all maps)</button>
-    <button class="btn sm ${BOARD.stream?'on':''}" data-act="stream">Stream layout</button></div>`;
+  return mapSVG() + `<div class="small muted" style="margin-top:4px">Solid lines = doors · dashed green = open paths · purple = secret passages · ✕ = block token · ! = noise · 🔪 = the Butcher · ? = stealth token</div>`;
 }
 
 
@@ -1243,7 +938,6 @@ function setupHTML(saved){
     <h3>Difficulty</h3>
     <div class="row">${Object.entries(DIFF).map(([k,d])=>`<button class="btn ${SETUP.diff===k?'on':''}" data-act="diff" data-k="${k}">${d.label}</button>`).join('')}</div>
     <div class="small muted" style="margin-top:6px">${DIFF[SETUP.diff].desc}${DIFF[SETUP.diff].draw?' The Butcher keeps the traits that suit him best.':''}</div>
-    ${setupBoardHTML()}
     <label class="tog"><input type="checkbox" data-act="mind" ${SETUP.mind?'checked':''}> Show the killer's mind (heat map + hand — spoilers, for testing)</label>
     <div class="row" style="margin-top:12px"><button class="btn primary" data-act="start" ${SETUP.surv.length===3?'':'disabled style="opacity:.5"'}>Start game</button></div>
   </div></main>`;
@@ -1251,7 +945,6 @@ function setupHTML(saved){
 let SAVED_CACHE;
 function render(){
   const app = document.getElementById('app');
-  { const bs = boardScreenHTML(); if(bs){ app.innerHTML = `<header><h1>TERRORSCAPE · Solo Killer</h1></header>` + bs; placeBoardImg(); return; } }
   if(!S){ app.innerHTML = `<header><h1>TERRORSCAPE · Solo Killer</h1></header>` + setupHTML(SAVED_CACHE); return; }
   const health = `<span class="stat">${S.surv.map(id=>`${sname(id)}<span class="hp ${S.injured[id]?'hurt':'ok'}">${S.injured[id]?'hurt':'ok'}</span>`).join(' ')}</span>`;
   const head = `<header><h1>TERRORSCAPE · Solo Killer</h1>
@@ -1269,7 +962,6 @@ function render(){
   const traitsCard = (S.traits&&S.traits.length) ? `<details class="card" style="margin-bottom:14px"><summary style="cursor:pointer"><b style="color:var(--purple)">Butcher's traits</b> <span class="small muted">(${DIFF[S.diff].label} — public, tap to read)</span>: ${S.traits.map(t=>TRAITS[t].name).join(', ')}</summary>${S.traits.map(t=>`<div class="small" style="margin-top:8px"><b>${TRAITS[t].name}</b> — ${TRAITS[t].text}</div>`).join('')}</details>` : `<div class="small muted" style="margin:0 0 10px 4px">${DIFF[S.diff]?DIFF[S.diff].label:''}: the Butcher has no traits.</div>`;
   app.innerHTML = head + `<main><div class="a-map card" style="padding:8px">${mapPanel()}</div>${S.mind?`<div class="a-mind">${mindHTML()}</div>`:''}
     <div class="a-side">${traitsCard}${side}<div class="card" style="margin-top:14px"><h2>Log</h2><div class="log">${logHTML()}</div></div></div></main>`;
-  placeBoardImg();
   if(PROMPT && window.innerWidth<900){ const el=document.querySelector('.prompt'); if(el) el.scrollIntoView({block:'nearest', behavior:'smooth'}); }
 }
 
@@ -1280,24 +972,6 @@ document.addEventListener('click', e=>{
   const el = e.target.closest('[data-act],[data-node]'); if(!el) return;
   if(el.dataset.node && !el.dataset.act){ if(S && S.phase==='survivors'){ toggleNoise(el.dataset.node); } return; }
   const a = el.dataset.act;
-  // board image view
-  if(a==='view'){ BOARD.view=el.dataset.v; boardPrefsSave(); return render(); }
-  if(a==='stream'){ BOARD.stream=!BOARD.stream; applyStream(); boardPrefsSave(); return render(); }
-  if(a==='calib'){ return startCalib(el.dataset.from); }
-  if(a==='calclick'){ const r=el.getBoundingClientRect(); return calClick((e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height); }
-  if(a==='calback'){ return calBack(); }
-  if(a==='calskip'){ return calSkip(); }
-  if(a==='calcancel'){ return finishCalib(); }
-  if(a==='bsetup'){ BOARD.showSetup=true; BOARD.ioMsg=''; return render(); }
-  if(a==='bsetupclose'){ BOARD.showSetup=false; return setBoardMap(MAP.id); }
-  if(a==='bmap'){ return setBoardMap(el.dataset.m); }
-  if(a==='bclear'){ return clearPositions(); }
-  if(a==='bexport'){ return doExport(); }
-  if(a==='bimport'){ return doImport(); }
-  if(a==='bscale'){ BOARD.scale=Math.max(0.5, Math.min(2.5, +(BOARD.scale + +el.dataset.d).toFixed(2))); boardPrefsSave(); return render(); }
-  if(a==='bremove'){ return removeBoard(); }
-  if(a==='bpreset'){ BOARD.cal=null; boardPrefsSave(); return render(); }
-  if(a==='boardfile'){ return; }
   // setup
   if(a==='pick'){ const id=el.dataset.id; if(SETUP.surv.includes(id)) SETUP.surv=SETUP.surv.filter(x=>x!==id); else if(SETUP.surv.length<3) SETUP.surv.push(id); return render(); }
   if(a==='diff'){ SETUP.diff=el.dataset.k; return render(); }
@@ -1327,14 +1001,12 @@ document.addEventListener('change', e=>{
   if(a==='fc'){ S.report.firecracker = e.target.checked; render(); }
   if(a==='rescue'){ S.rescue = e.target.checked; render(); }
   if(a==='mind'){ SETUP.mind = e.target.checked; }
-  if(a==='boardfile'){ const f = e.target.files && e.target.files[0]; e.target.value=''; loadBoardFile(f); }
 });
 function toggleNoise(l){ const r=S.report; r.noise = r.noise.includes(l)? r.noise.filter(x=>x!==l) : [...r.noise,l]; render(); }
 
 SAVED_CACHE = loadSaved();
 if(SAVED_CACHE && SAVED_CACHE.phase==='over'){ SAVED_CACHE=null; }
 render();
-boardInit();
 </script>
 </body>
 </html>
