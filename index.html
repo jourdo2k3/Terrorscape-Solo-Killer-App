@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terrorscape – Solo Killer</title>
+<style>
+:root{
+  --bg:#110e0d; --panel:#1c1716; --panel2:#251e1c; --line:#3a2f2c; --text:#ece4df; --muted:#a8988f;
+  --blood:#c0392b; --blood2:#e0533f; --blue:#4a7fc9; --red:#c44a4a; --green:#4f9d5a; --gold:#d9b25b; --purple:#9b6bd1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);background:#160f0e}
+header h1{font-size:18px;margin:0;letter-spacing:.5px;color:var(--blood2);font-family:Georgia,serif}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:13px;color:var(--muted)}
+.stat b{color:var(--text)}
+.spacer{flex:1}
+main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:'map side' 'mind side';grid-template-rows:auto 1fr;align-items:start;gap:14px;padding:14px;max-width:1300px;margin:0 auto}
+.a-map{grid-area:map}.a-side{grid-area:side}.a-mind{grid-area:mind}
+@media (max-width:900px){main{grid-template-columns:1fr;grid-template-areas:'map' 'side' 'mind';padding:8px;gap:10px}header{padding:8px 10px;gap:6px}.stat{font-size:12px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.card h2{margin:0 0 8px;font-size:16px;font-family:Georgia,serif;color:var(--gold)}
+.card h3{margin:12px 0 6px;font-size:14px;color:var(--text)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+svg{width:100%;height:auto;display:block;user-select:none}
+.node rect{stroke-width:2.5}
+.node text{fill:var(--text);font-size:14px;pointer-events:none}
+.node .code{font-weight:700;font-size:20px}
+.node.clickable{cursor:pointer}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 14px}
+.btn:hover{border-color:#6a5550}
+.btn.primary{background:var(--blood);border-color:var(--blood);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--blood2)}
+.btn.on{background:#3b2a27;border-color:var(--blood2);color:#fff}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn.ghost{background:transparent}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:5px 10px;font-size:13px;color:var(--text)}
+.chip.on{background:var(--blood);border-color:var(--blood2);color:#fff}
+.chip.B{border-left:4px solid var(--blue)} .chip.R{border-left:4px solid var(--red)} .chip.G{border-left:4px solid var(--green)}
+.prompt{border:1px solid var(--blood);background:#241312;border-radius:10px;padding:12px;margin-top:10px}
+.prompt h3{margin:0 0 6px;color:#fff}
+.log{max-height:420px;overflow:auto;font-size:14px}
+.log .turn{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}
+.log .turn:first-child{border-top:0;margin-top:0;padding-top:0}
+.log .head{font-weight:700;color:var(--gold);margin-bottom:4px}
+.log .l{margin:3px 0;padding-left:10px;border-left:2px solid transparent}
+.log .do{border-left-color:var(--blood2);color:#fff}
+.log .card-play{border-left-color:var(--gold)}
+.log .info{color:var(--muted)}
+.log .lvl{border-left-color:var(--purple);color:#d9c3f5}
+.log .bad{border-left-color:var(--blood2);color:#ffb3a8;font-weight:600}
+.surv-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.surv{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:8px 10px;text-align:left;color:var(--text)}
+.surv.on{border-color:var(--blood2);background:#3b2a27}
+.surv b{display:block}
+.surv span{font-size:12px;color:var(--muted)}
+.roster-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mind{border-color:#4b3a63}
+.mind h2{color:#c9a8f0}
+.bar{height:6px;background:#2b2230;border-radius:3px;overflow:hidden;margin-top:2px}
+.bar i{display:block;height:100%;background:var(--purple)}
+.hp{display:inline-block;padding:1px 7px;border-radius:5px;font-size:12px;margin-left:4px}
+.hp.ok{background:#20402a;color:#9fe0ad}.hp.hurt{background:#4a1f1b;color:#ffb3a8}
+label.tog{display:flex;align-items:center;gap:8px;margin:6px 0}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--blood)}
+.over{text-align:center;padding:30px 10px}
+.over h2{font-size:28px}
+a{color:var(--gold)}
+.boardwrap{position:relative;line-height:0;border-radius:8px;overflow:hidden;background:#000}
+.boardwrap img{width:100%;height:auto;display:block;user-select:none;-webkit-user-drag:none}
+.boardwrap svg.ov{position:absolute;inset:0;width:100%;height:100%}
+.ov .hit{cursor:pointer}
+.ov .hit:hover{fill:rgba(255,255,255,.12)}
+.calib svg.ov{cursor:crosshair}
+.killer-tok{animation:kpulse 2.4s ease-in-out infinite}
+@keyframes kpulse{50%{opacity:.82}}
+body.stream main{max-width:none;grid-template-columns:minmax(0,1.9fr) minmax(340px,1fr)}
+body.stream .log{max-height:60vh}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ============================================================
+   DATA
+   ============================================================ */
+const MAP = {
+  id: 'mansion', name: 'The Mansion',
+  locs: {
+    B1:{n:'Living Room', x:330,y:135}, B2:{n:'Dining Room', x:515,y:165}, B3:{n:'Kitchen', x:695,y:112},
+    B4:{n:'Storage', x:870,y:135}, B5:{n:'Banquet Hall', x:745,y:290},
+    R1:{n:'Main Hall', x:320,y:300}, R2:{n:'Gallery', x:335,y:460}, R3:{n:'Hallway', x:505,y:310},
+    R4:{n:'Den', x:580,y:392}, R5:{n:'Library', x:545,y:492},
+    G1:{n:'Trail', x:420,y:590}, G2:{n:'Graveyard', x:645,y:592}, G3:{n:'Shed', x:910,y:555},
+    G4:{n:'Greenhouse', x:745,y:480}, G5:{n:'Garden', x:930,y:285}
+  },
+  doors: [['B1','B2'],['B2','B3'],['B3','B4'],['B1','R1'],['B2','R1'],['B2','B5'],['R1','R2'],['R1','R3'],
+          ['R2','R3'],['R2','R5'],['R2','G1'],['R3','B5'],['R4','B5'],['R4','R5'],['R5','G4'],['B4','G5'],['G4','G3']],
+  paths: [['G1','G2'],['G2','G3'],['G3','G5']],
+  passages: [['B1','G2','I'],['B5','G5','II']],
+  search: ['B4','R2','G4'], radio:'B1', knowledge:'R4', mystic:'G2', tool:'G3',
+  mainExit:'R1', hiddenExit:'G5', killerStart:'G5', survivorStart:'R1'
+};
+const ZONES = {B:'Blue', R:'Red', G:'Green'};
+
+const BUTCHER = {
+  name: 'Butcher', baseStrength: 5,
+  levels: {1:'—', 2:'+1 strength', 3:'Unlock "Brutal Rage"', 4:'"Revving Chainsaw" becomes fast', 5:'When an encounter occurs, damage all targets before attacking'},
+  cards: {
+    pursue:   {name:'Pursue', n:3, speed:'fast', cost:0, text:'[MOVE] x1', value:3},
+    sense:    {name:'Sense', n:2, speed:'fast', cost:0, text:'[SENSE] a colour zone', value:2},
+    madness:  {name:'Madness', n:1, speed:'fast', cost:2, text:'[BLOCK] x1 in your location, +2 strength this turn', value:3},
+    chainsaw: {name:'Revving Chainsaw', n:2, speed:'special', cost:2, text:'[FEAR] all Survivors within 1 range, [MOVE] x0-1, damage all Survivors in your location', value:7},
+    stay:     {name:'STAYYYY!', n:1, speed:'slow', cost:4, text:'[BLOCK] all doors in your location', value:2},
+    barricade:{name:'Barricade', n:3, speed:'slow', cost:0, text:'[BLOCK] x1 in your location', value:1},
+    rage:     {name:'Brutal Rage', n:1, speed:'special', cost:1, unlock:3, text:'[MOVE] x1-2, [SEARCH] (repeat if no Survivor was found AND a block token was removed)', value:6}
+  }
+};
+
+const SURVIVORS = [
+  {id:'anna',    name:'Anna Kubrick',     note:'Invisible to [SENSE]; quiet when searching'},
+  {id:'caleb',   name:'Caleb Peele',      note:'Can also search at the Graveyard'},
+  {id:'dylan',   name:'Dylan Wan',        note:'Toughness; Mechanical Knowledge at the Shed'},
+  {id:'george',  name:'George Carpenter', note:'Brainy and Smart in the Den (silent repair)'},
+  {id:'johnson', name:'Johnson Nispel',   note:'XL Backpack; faster Toolbox repairs'},
+  {id:'marco',   name:'Marco Carven',     note:'Med-Kit; Resourceful'},
+  {id:'ophelia', name:'Ophelia Romero',   note:'Encouraging Words; Sixth Sense'},
+  {id:'sophia',  name:'Sophia Scott',     note:'Travels through secret passages'},
+  {id:'william', name:'William Hooper',   note:'Persistence; Sprint (move 3)'}
+];
+const SV = Object.fromEntries(SURVIVORS.map(s=>[s.id,s]));
+// Difficulty follows the rulebook's "Trait cards and Survival Difficulty levels" variant.
+const DIFF = {
+  vanilla:  {label:'Vanilla',   draw:0, keep:0, survTraits:false, desc:'Base rules. No trait cards on either side.'},
+  easy:     {label:'Easy',      draw:0, keep:0, survTraits:true,  desc:'Each survivor draws 2 Survivor Traits and keeps 1. The Butcher has no traits.'},
+  normal:   {label:'Normal',    draw:2, keep:1, survTraits:true,  desc:'Each survivor draws 2 Survivor Traits and keeps 1. The Butcher draws 2 Killer Traits and keeps 1.'},
+  hard:     {label:'Hard',      draw:4, keep:2, survTraits:true,  desc:'Each survivor draws 2 Survivor Traits and keeps 1. The Butcher draws 4 Killer Traits and keeps 2.'},
+  nightmare:{label:'Nightmare', draw:6, keep:3, survTraits:true,  desc:'Each survivor draws 2 Survivor Traits and keeps 1. The Butcher draws 6 Killer Traits and keeps 3.'}
+};
+const EPS = 0.05; // small chance the Butcher picks a less obvious target, so he isn't fully predictable
+// Killer trait cards. rank = how much this AI values the trait when choosing.
+const TRAITS = {
+  fatal:     {name:'Fatal Attack', rank:9, text:'+1 strength.'},
+  entrap:    {name:'Insidious Entrapment', rank:6, text:'At the start of the game, [BLOCK] x2 in any location.'},
+  lie:       {name:'Lie in Wait', rank:4, text:'You start at Level 2 but skip your first turn.'},
+  intent:    {name:'Murderous Intent', rank:5, text:'If you have spotted any Survivor with [SENSE], you may discard 1 card to [FEAR] them.'},
+  heightened:{name:'Heightened Senses', rank:6, text:'Once per turn, if you have spotted any Survivor with [SENSE], you may additionally [SENSE] a colour zone.'},
+  deterrence:{name:'Deterrence', rank:4, text:'When you level up to Level 3/4/5, [FEAR] 1 Survivor of your choice.'},
+  sly:       {name:'Sly Entrapper', rank:5, text:'When you level up to Level 2/4, [BLOCK] x1 in any location.'},
+  aura:      {name:'Terror Aura', rank:7, text:'At the end of your turn, if you have not encountered a Survivor this turn and you are not in [STEALTH], [FEAR] all Survivors in your location.'},
+  ambush:    {name:'Perilous Ambush', rank:6, text:'At the end of your turn, if you have not encountered a Survivor this turn and you are not in [STEALTH], you may discard 2 cards to [STEALTH] x0-2.'},
+  encircle:  {name:'Total Encirclement', rank:4, text:'At the end of your turn, if you have not encountered a Survivor this turn and you are not in [STEALTH], you may discard 2 cards to [BLOCK] x1 in your location.'},
+  toying:    {name:'Toying with the Prey', rank:1, text:'When you encounter any Survivor, you may immediately cancel the encounter. After that, you draw 3 extra cards and end your turn.'},
+  ploy:      {name:'Devious Ploy', rank:5, text:'At the start of the game, draw 1 extra card. When you have exceeded the hand limit, you may discard any card(s) in your hand to make space for the newly drawn card(s).'},
+  nightmare: {name:'Nightmare Descends', rank:3, text:'At the start of the game, [FEAR] all Survivors.'},
+  swift:     {name:'Swift Action', rank:6, text:'At the start of your turn, if you are not in [STEALTH], you may discard 2 cards to [MOVE] x1.'},
+  acute:     {name:'Acute Hearing', rank:8, text:'At the start of your turn, you may discard 1 card to [SENSE] a location with noise.'},
+  tracking:  {name:'Enhanced Tracking', rank:8, text:'At the start of your turn, if you are not in [STEALTH], you may discard 1 card to [SENSE] all locations within 1 range.'},
+  selfch:    {name:'Self-challenge', rank:3, text:'At the start of the game, you have no starting hand and -1 strength. When you level up to Level 3, immediately level up to Level 4.'},
+  suppressed:{name:'Suppressed Rage', rank:4, text:'At the start of the game, -1 strength. When you level up, +1 strength.'},
+  immediate: {name:'Immediate Response', rank:5, text:'If you have spotted any Survivor with [SENSE], you may discard 1 card to [MOVE] x1.'},
+  mass:      {name:'Terrorising the Mass', rank:5, text:'When you damage any Survivor, [FEAR] all Survivors.'}
+};
+
+/* ============================================================
+   GRAPH
+   ============================================================ */
+const L = Object.keys(MAP.locs), NL = L.length, IX = Object.fromEntries(L.map((l,i)=>[l,i]));
+const zoneOf = l => l[0];
+const ekey = (a,b) => a<b ? a+'|'+b : b+'|'+a;
+const EDGES = [...MAP.doors.map(([a,b])=>({a,b,door:true})), ...MAP.paths.map(([a,b])=>({a,b,door:false}))];
+const EDGE = Object.fromEntries(EDGES.map(e=>[ekey(e.a,e.b),e]));
+const NB = Object.fromEntries(L.map(l=>[l,[]]));
+EDGES.forEach(e=>{NB[e.a].push(e.b);NB[e.b].push(e.a);});
+const PASS = Object.fromEntries(L.map(l=>[l,null]));
+MAP.passages.forEach(([a,b])=>{PASS[a]=b;PASS[b]=a;});
+function bfsFrom(start, nbFn){ const d={[start]:0}, q=[start]; while(q.length){const c=q.shift(); for(const n of nbFn(c)) if(d[n]===undefined){d[n]=d[c]+1;q.push(n);} } return d; }
+const DK = Object.fromEntries(L.map(l=>[l,bfsFrom(l,c=>NB[c])])); // killer distances (blocks don't stop the killer)
+const inRange = (loc,n) => L.filter(l=>DK[loc][l]<=n);
+const doorsAt = loc => NB[loc].filter(n=>EDGE[ekey(loc,n)].door);
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let S = null;          // game state
+let PROMPT = null;     // current question
+let HISTORY = [];      // undo snapshots
+let SETUP = {surv:[], diff:'normal', mind:false};
+const SAVE_KEY = 'terrorscape-solo-killer-v2';
+const rnd = () => Math.random();
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const nm = l => `${l} ${MAP.locs[l].n}`;
+const sname = id => SV[id].name.split(' ')[0];
+
+function pickTraits(diff){
+  const D = DIFF[diff]; if(!D.draw) return {drawn:[], kept:[]};
+  const drawn = shuffle(Object.keys(TRAITS)).slice(0, D.draw);
+  const kept = drawn.slice().sort((a,b)=>(TRAITS[b].rank+rnd()*0.5)-(TRAITS[a].rank+rnd()*0.5)).slice(0, D.keep);
+  return {drawn, kept};
+}
+function newGame(surv, diff, mind){
+  const deck = [];
+  for(const [id,c] of Object.entries(BUTCHER.cards)) if(!c.unlock) for(let i=0;i<c.n;i++) deck.push(id);
+  const {drawn, kept} = pickTraits(diff);
+  S = {
+    phase:'survivors', round:1, surv:surv.slice(), injured:{}, diff, mind, traits:kept, traitsDrawn:drawn.length,
+    killerLoc: MAP.killerStart, level:1, baseStr:BUTCHER.baseStrength, tempStr:0,
+    deck: shuffle(deck), hand:[], discard:[], blocks:[],
+    belief:null, repairEst:0, keys:0, rescue:false, lastNoise:[],
+    stealth:false, visibleLoc:null, skipTurn:false, pending:[], fear:{},
+    report:{noise:[], removed:[], firecracker:false}, log:[], winner:null
+  };
+  surv.forEach(id=>{S.injured[id]=false; S.fear[id]=0;});
+  const P = new Float64Array(NL*NL*NL); const s0=IX[MAP.survivorStart]; P[s0*225+s0*15+s0]=1; S.belief = P;
+  HISTORY = [];
+  logTurn('Setup');
+  const D = DIFF[diff];
+  say(`Difficulty: <b>${D.label}</b>. ${D.desc}`, 'info');
+  if(D.survTraits) say(`Survivors: each of you draws 2 Survivor Trait cards and keeps 1 (keep them secret unless the card says otherwise).`, 'do');
+  if(kept.length){
+    say(`The Butcher drew ${drawn.length} Killer Traits and keeps: ${kept.map(t=>`<b>${TRAITS[t].name}</b>`).join(', ')}. Find ${kept.length>1?'these cards':'this card'} and place ${kept.length>1?'them':'it'} face up — they are public.`, 'lvl');
+  }
+  // trait setup effects
+  if(hasT('fatal')) S.baseStr += 1;
+  if(hasT('selfch')) S.baseStr -= 1;
+  if(hasT('suppressed')) S.baseStr -= 1;
+  if(hasT('lie')){ S.level = 2; S.baseStr += 1; S.skipTurn = true; }
+  const startHand = hasT('selfch') ? 0 : 2 + (hasT('ploy')?1:0);
+  for(let i=0;i<startHand;i++) S.hand.push(S.deck.pop());
+  say(`The Butcher starts in ${nm(MAP.killerStart)} — level ${S.level}, strength ${S.baseStr}. Set his level and strength board.`, 'do');
+  if(hasT('entrap')){
+    say(`Insidious Entrapment: the Butcher places 2 block tokens.`, 'card-play');
+    for(let i=0;i<2;i++){ const d=chooseBlockAnywhere(); if(d) placeBlock(d); }
+  }
+  if(hasT('nightmare')){ say(`Nightmare Descends: every survivor gains 1 fear.`, 'card-play'); S.surv.forEach(id=>S.fear[id]++); }
+  say(`Survivors start in ${nm(MAP.survivorStart)}: ${S.surv.map(sname).join(', ')}.`, 'info');
+  say(`Survivors take the first turn. Play it at the table, then report below.`, 'info');
+  save(); render();
+}
+const hasT = t => (S.traits||[]).includes(t);
+
+/* ============================================================
+   LOG
+   ============================================================ */
+function logTurn(head){ S.log.push({head, lines:[]}); }
+function say(text, kind='info'){ S.log[S.log.length-1].lines.push({text,kind}); render(); }
+
+/* ============================================================
+   BELIEF (joint distribution over the 3 survivors' locations)
+   ============================================================ */
+const NS = NL*NL*NL;
+const decode = s => [Math.floor(s/225), Math.floor(s/15)%15, s%15];
+function normalize(P){ let t=0; for(let s=0;s<NS;s++) t+=P[s]; if(t>0) for(let s=0;s<NS;s++) P[s]/=t; return t; }
+function applyTrans(P, Ts){
+  let cur = P;
+  for(let d=0; d<3; d++){
+    const T = Ts[d]; if(!T) continue;
+    const out = new Float64Array(NS);
+    for(let s=0;s<NS;s++){ const p=cur[s]; if(p<1e-14) continue;
+      const a=Math.floor(s/225), b=Math.floor(s/15)%15, c=s%15;
+      const row = T[d===0?a:d===1?b:c];
+      for(let t=0;t<NL;t++){ const w=row[t]; if(w<=0) continue;
+        out[d===0? t*225+b*15+c : d===1? a*225+t*15+c : a*225+b*15+t] += p*w; } }
+    cur = out;
+  }
+  normalize(cur); return cur;
+}
+// multiply by likelihood fn(locs[] as indices) ; robust against contradictions
+function evidence(fn){
+  const P = S.belief, Q = new Float64Array(NS);
+  for(let s=0;s<NS;s++){ if(P[s]<1e-15) continue; const w=fn(decode(s)); if(w>0) Q[s]=P[s]*w; }
+  if(normalize(Q) > 1e-300){ S.belief = Q; return; }
+  // contradiction with our model: fall back to "anything consistent with this answer"
+  const R = new Float64Array(NS);
+  for(let s=0;s<NS;s++){ R[s] = fn(decode(s)) * (P[s]+1e-6); }
+  if(normalize(R) > 0){ S.belief = R; say('(The killer is surprised — rethinking where everyone could be.)','info'); }
+}
+function marg(P=S.belief){
+  const m=[new Float64Array(NL),new Float64Array(NL),new Float64Array(NL)], any=new Float64Array(NL);
+  for(let s=0;s<NS;s++){ const p=P[s]; if(p<1e-14) continue; const a=Math.floor(s/225), b=Math.floor(s/15)%15, c=s%15;
+    m[0][a]+=p; m[1][b]+=p; m[2][c]+=p; any[a]+=p; if(b!==a) any[b]+=p; if(c!==a&&c!==b) any[c]+=p; }
+  return {m, any};
+}
+function survPassable(loc){ return NB[loc].filter(n=>!S.blocks.includes(ekey(loc,n))); }
+function goalMult(i, loc){
+  const id=S.surv[i]; let g=1;
+  if(S.keys<5 && MAP.search.includes(loc)) g*=1.4;
+  if(!S.rescue && loc===MAP.radio) g*=1.5;
+  if(S.keys>=5 && loc===MAP.mainExit) g*=2.5;
+  if(id==='caleb' && loc===MAP.mystic) g*=1.3;
+  if(id==='dylan' && loc===MAP.tool) g*=1.2;
+  if(id==='george' && loc===MAP.knowledge && !S.rescue) g*=1.3;
+  return g;
+}
+// where the survivors believe the killer is (during [STEALTH] they only know where he vanished)
+const seenK = () => S.stealth ? S.visibleLoc : S.killerLoc;
+function survTrans(i, oneStep=false){
+  const id=S.surv[i], K=seenK();
+  const maxD = oneStep?1:(id==='william'?3:2);
+  const base = oneStep?[0.4,0.6]:(id==='william'?[0.27,0.33,0.3,0.1]:[0.3,0.35,0.35]);
+  const extra = oneStep?0:0.04; // Adrenaline: one more step
+  const T=[];
+  for(let f=0;f<NL;f++){
+    const from=L[f];
+    const nbFn = c => { const n=survPassable(c); if(id==='sophia' && !oneStep && PASS[c]) n.push(PASS[c]); return n; };
+    const d = bfsFrom(from, nbFn);
+    const cnt = new Array(maxD+2).fill(0);
+    for(const l of L) if(d[l]!==undefined && d[l]<=maxD+1) cnt[d[l]]++;
+    const row = new Float64Array(NL);
+    for(let t=0;t<NL;t++){ const l=L[t]; let w=0.002;
+      if(d[l]!==undefined && d[l]<=maxD) w += base[d[l]]/cnt[d[l]];
+      if(d[l]===maxD+1) w += extra/cnt[d[l]];
+      if(!oneStep && id!=='sophia' && PASS[from]===l) w += 0.03;
+      const danger = l===K?0.25:(NB[K].includes(l)?0.7:1);
+      row[t] = w*danger*(oneStep?1:goalMult(i,l)); }
+    let tot=0; for(let t=0;t<NL;t++) tot+=row[t]; for(let t=0;t<NL;t++) row[t]/=tot;
+    T.push(row);
+  }
+  return T;
+}
+function pNoise(i, l){
+  const id=S.surv[i], loc=L[l];
+  if(loc===seenK()) return 0.08;
+  if(MAP.search.includes(loc)) return id==='anna'?0.12:0.45;
+  if(loc===MAP.radio && !S.rescue) return 0.55;
+  if(id==='caleb' && loc===MAP.mystic) return 0.4;
+  return 0.12;
+}
+function noiseEvidence(noiseLocs){
+  const N = new Uint8Array(NL); noiseLocs.forEach(l=>N[IX[l]]=1);
+  const pn = S.surv.map((_,i)=>L.map((_,l)=>pNoise(i,l)));
+  const decoyAny = 0.01 + (S.surv.includes('sophia')?0.04:0) + (S.surv.includes('george')?0.04:0);
+  evidence(locs=>{
+    let lik=1; const occ={};
+    locs.forEach((l,i)=>{ (occ[l]=occ[l]||[]).push(i); });
+    for(const l in occ){ let quiet=1; occ[l].forEach(i=>quiet*=1-pn[i][l]); lik *= N[l]? (1-quiet) : quiet; }
+    // noise with nobody there: Whiskey Bottle (adjacent room), Sophia's Camera / George's Note (anywhere)
+    for(let l=0;l<NL;l++) if(N[l] && !occ[l]){
+      let f = decoyAny;
+      for(const n of NB[L[l]]) if(occ[IX[n]]){ f += 0.12; break; }
+      lik *= f;
+    }
+    return lik;
+  });
+}
+const presentEv = (loc, ids) => { const li=IX[loc]; evidence(locs=>locs.every((l,i)=> ids.includes(S.surv[i]) ? l===li : l!==li)?1:0); };
+const rangeEv = (locsIn, ids) => { const set=new Set(locsIn.map(l=>IX[l])); evidence(locs=>locs.every((l,i)=> ids.includes(S.surv[i]) ? set.has(l) : !set.has(l))?1:0); };
+const zoneEv = (z, ids) => evidence(locs=>locs.every((l,i)=>{ const id=S.surv[i], inZ = zoneOf(L[l])===z;
+  if(ids.includes(id)) return inZ; if(id==='anna') return true; return !inZ; })?1:0);
+const senseSetEv = (locsIn, ids) => { const set=new Set(locsIn.map(l=>IX[l])); evidence(locs=>locs.every((l,i)=>{ const id=S.surv[i];
+  if(ids.includes(id)) return set.has(l); if(id==='anna') return true; return !set.has(l); })?1:0); };
+const exactEv = (id, loc) => { const i=S.surv.indexOf(id), li=IX[loc]; evidence(locs=>locs[i]===li?1:0); };
+
+/* ============================================================
+   CARDS / DECK
+   ============================================================ */
+const C = id => BUTCHER.cards[id];
+const has = id => S.hand.includes(id);
+const count = id => S.hand.filter(c=>c===id).length;
+const strength = () => Math.min(10, S.baseStr + S.tempStr);
+const isFast = id => id==='chainsaw' ? S.level>=4 : C(id).speed==='fast';
+function takeFromHand(id){ const i=S.hand.indexOf(id); if(i>=0) S.hand.splice(i,1); }
+function payable(id, reserve=[]){
+  const pool = S.hand.slice(); const rm = x=>{const i=pool.indexOf(x); if(i>=0) pool.splice(i,1);};
+  rm(id); reserve.forEach(rm);
+  return pool.length >= C(id).cost;
+}
+function payCost(id, reserve=[]){
+  const cost = C(id).cost; if(!cost) return;
+  const pool = S.hand.slice(); const rm = x=>{const i=pool.indexOf(x); if(i>=0) pool.splice(i,1);};
+  rm(id); reserve.forEach(rm);
+  pool.sort((a,b)=>C(a).value-C(b).value);
+  const pay = pool.slice(0,cost);
+  pay.forEach(c=>{takeFromHand(c); S.discard.push(c);});
+  say(`(Discards ${cost} card${cost>1?'s':''} from hand to pay the cost.)`,'info');
+}
+function play(id, reserve=[]){
+  payCost(id, reserve); takeFromHand(id);
+  say(`Plays <b>${C(id).name}</b> — ${C(id).text}`, 'card-play');
+}
+function finishCard(id){ S.discard.push(id); }
+// discard n low-value cards from hand to pay for a trait ability
+const cheap = () => S.hand.filter(c=>C(c).value<=3).sort((a,b)=>C(a).value-C(b).value);
+const canSpend = n => cheap().length >= n;
+function spend(n, why){ const pay = cheap().slice(0,n); pay.forEach(c=>{takeFromHand(c); S.discard.push(c);}); say(`(${why}: discards ${n} card${n>1?'s':''} from hand.)`, 'info'); }
+function levelUp(){
+  if(S.level>=5) return;
+  S.level++; applyLevel(S.level);
+  if(hasT('selfch') && S.level===3){ say('Self-challenge: he jumps straight on to level 4!', 'lvl'); S.level=4; applyLevel(4); }
+}
+function applyLevel(lv){
+  if(lv===2) S.baseStr += 1;
+  if(hasT('suppressed')) S.baseStr += 1;
+  S.baseStr = Math.min(10, S.baseStr);
+  say(`<b>Level up!</b> The Butcher reaches level ${lv}: ${BUTCHER.levels[lv]}.${hasT('suppressed')?' Suppressed Rage: +1 strength.':''} Strength is now ${S.baseStr}. Update the level &amp; strength board.`, 'lvl');
+  if(lv===3){
+    if(S.hand.length>=5){ const low = S.hand.slice().sort((a,b)=>C(a).value-C(b).value)[0]; takeFromHand(low); S.discard.push(low); }
+    S.hand.push('rage');
+    say(`"Brutal Rage" is unlocked and added to the killer's hand.`, 'lvl');
+  }
+  if(hasT('sly') && (lv===2 || lv===4)){ const d=chooseBlockAnywhere(); if(d){ say('Sly Entrapper: he places a block token.', 'card-play'); placeBlock(d); } }
+  if(hasT('deterrence') && lv>=3) S.pending.push('deterrence');
+}
+async function processPending(){
+  while(S.pending && S.pending.length){
+    const p = S.pending.shift();
+    if(p==='deterrence' && S.phase!=='over'){
+      const id = S.surv.slice().sort((a,b)=>(S.fear[b]||0)-(S.fear[a]||0)+rnd()*0.1)[0];
+      say(`Deterrence: ${SV[id].name} gains 1 fear.`, 'card-play');
+      await giveFear([id], null, true);
+    }
+  }
+}
+function refill(){ levelUp(); S.deck = shuffle(S.discard); S.discard = []; }
+function drawCards(n){
+  for(let k=0;k<n;k++){
+    if(!S.deck.length) refill();
+    if(!S.deck.length) break;
+    const c = S.deck.pop();
+    if(S.hand.length<5) S.hand.push(c);
+    else if(hasT('ploy')){ // Devious Ploy: may swap out a weaker card from hand
+      const low = S.hand.slice().sort((a,b)=>C(a).value-C(b).value)[0];
+      if(C(c).value > C(low).value){ takeFromHand(low); S.discard.push(low); S.hand.push(c); } else S.discard.push(c);
+    } else S.discard.push(c);
+  }
+}
+function deckDiscard(n){
+  for(let k=0;k<n;k++){ if(!S.deck.length) refill(); if(!S.deck.length) break; S.discard.push(S.deck.pop()); }
+}
+
+/* ============================================================
+   KILLER ACTIONS
+   ============================================================ */
+function killerPath(from, to){
+  // Dijkstra: 1 per step, tiny extra for crossing a block (prefer keeping blocks)
+  const dist={[from]:0}, prev={}, done=new Set();
+  while(true){
+    let c=null, best=Infinity; for(const l in dist) if(!done.has(l) && dist[l]<best){best=dist[l];c=l;}
+    if(c===null || c===to) break; done.add(c);
+    for(const n of NB[c]){ const w = 1 + (S.blocks.includes(ekey(c,n))?0.01:0) + rnd()*0.001;
+      if(dist[n]===undefined || dist[c]+w<dist[n]){ dist[n]=dist[c]+w; prev[n]=c; } }
+  }
+  const p=[to]; while(p[0]!==from){ p.unshift(prev[p[0]]); } return p;
+}
+function stepTo(next){
+  const k = ekey(S.killerLoc, next); let removed=false;
+  if(S.blocks.includes(k)){ S.blocks = S.blocks.filter(b=>b!==k); removed=true; }
+  say(`➜ Move the Butcher: ${nm(S.killerLoc)} → <b>${nm(next)}</b>${removed?' (smashing through — remove that block token)':''}`, 'do');
+  S.killerLoc = next; if(S.turnFlags) S.turnFlags.emptyAt=null; return removed;
+}
+function chooseBlockAnywhere(){
+  const {any} = marg();
+  const goal = l => MAP.search.includes(l) || (l===MAP.radio && !S.rescue) || (S.keys>=5 && l===MAP.mainExit);
+  let best=null, bs=-1;
+  for(const [a,b] of MAP.doors){ const k=ekey(a,b); if(S.blocks.includes(k)) continue;
+    const sc = any[IX[a]] + any[IX[b]] + (goal(a)?0.35:0) + (goal(b)?0.35:0) + rnd()*0.01;
+    if(sc>bs){bs=sc;best=k;} }
+  return best;
+}
+function chooseBlockDoor(loc, avoid=[]){
+  const {any} = marg();
+  const goal = l => MAP.search.includes(l) || (l===MAP.radio && !S.rescue) || (S.keys>=5 && l===MAP.mainExit);
+  let best=null, bs=-1;
+  for(const n of doorsAt(loc)){ const k=ekey(loc,n); if(S.blocks.includes(k) || avoid.includes(k)) continue;
+    const sc = any[IX[n]] * (1 + (goal(loc)?0.8:0) + (goal(n)?0.4:0)) + rnd()*0.01;
+    if(sc>bs){bs=sc;best=k;} }
+  return best ? {k:best, score:bs} : null;
+}
+function placeBlock(k){
+  if(S.blocks.length>=7){
+    const far = S.blocks.slice().sort((a,b)=>{ const da=Math.min(...a.split('|').map(x=>DK[S.killerLoc][x])), db=Math.min(...b.split('|').map(x=>DK[S.killerLoc][x])); return db-da; })[0];
+    S.blocks = S.blocks.filter(b=>b!==far);
+    const [a,b]=far.split('|'); say(`Out of block tokens: remove the block between ${nm(a)} and ${nm(b)}.`,'do');
+  }
+  S.blocks.push(k); const [a,b]=k.split('|');
+  say(`➜ Place a block token on the door between <b>${nm(a)}</b> and <b>${nm(b)}</b>.`, 'do');
+}
+
+/* ---------- prompts ---------- */
+function ask(def){ return new Promise(res=>{ PROMPT = {...def, resolve:res, sel:def.sel||[], states:def.states||null, vals:{}}; render(); }); }
+const survItems = (ids=S.surv) => ids.map(id=>({label:SV[id].name, value:id}));
+
+async function doSearch(){
+  const loc = S.killerLoc;
+  say(`[SEARCH] in ${nm(loc)}.`, 'card-play');
+  const sel = await ask({type:'multi', meta:{locs:[loc]}, title:`[SEARCH] — ${nm(loc)}`, text:`Is anyone in <b>${nm(loc)}</b>? Tick every survivor who is here, or confirm nobody.`, items:survItems()});
+  presentEv(loc, sel);
+  if(!sel.length){ say(`Nobody in ${nm(loc)}.`, 'info'); if(S.turnFlags) S.turnFlags.emptyAt=loc; return false; }
+  say(`Found ${sel.map(sname).join(' & ')}!`, 'bad');
+  if(S.turnFlags) S.turnFlags.encountered = true;
+  await encounter(loc, sel);
+  return true;
+}
+// [FEAR] some survivors; ask who was overwhelmed (3rd fear → noise reveals them). whereOpts = possible locations (null = anywhere)
+async function giveFear(ids, whereOpts, quiet=false){
+  if(!ids.length || S.phase==='over') return;
+  if(!quiet) say(`${ids.map(sname).join(' & ')} gain${ids.length>1?'':'s'} 1 fear.`, 'do');
+  ids.forEach(id=>S.fear[id]=(S.fear[id]||0)+1);
+  const ow = await ask({type:'multi', meta:{kind:'overwhelm'}, title:'Fear overwhelmed?', text:`Place the fear token${ids.length>1?'s':''}. Did anyone just get their <b>3rd</b> fear? They make a noise instead and reveal where they are.`, items:survItems(ids)});
+  for(const id of ow){
+    const opts = whereOpts || L; let where = opts[0];
+    if(opts.length>1) where = await ask({type:'choice', meta:{kind:'where', id}, title:`${SV[id].name} is overwhelmed`, text:'Where does the noise come from?', options:opts.map(l=>({label:nm(l), value:l}))});
+    exactEv(id, where); S.fear[id]=0; say(`${SV[id].name} is overwhelmed — a scream from ${nm(where)}!`, 'bad');
+  }
+}
+// called after any damage was dealt
+async function afterDamage(){
+  if(hasT('mass') && S.phase!=='over'){ say('Terrorising the Mass: every survivor gains 1 fear.', 'card-play'); await giveFear(S.surv, null, true); }
+}
+async function injure(id){
+  if(S.injured[id]){ say(`<b>${SV[id].name} is eliminated. The Butcher wins.</b>`, 'bad'); S.pending=[]; gameOver('killer'); return true; }
+  S.injured[id]=true; say(`${SV[id].name} is <b>injured</b> — flip their health tile.`, 'bad'); return false;
+}
+async function encounter(loc, present){
+  say(`<b>Encounter in ${nm(loc)}!</b>`, 'bad');
+  let targets = present.slice();
+  if(S.level>=5){
+    say(`Level 5: damage all targets before attacking.`, 'lvl');
+    const r = await ask({type:'roster', meta:{kind:'damage-all'}, title:'Damage all targets', text:'Each survivor here takes 1 damage. Mark anyone who avoided it (e.g. Dylan\'s Toughness).', items:survItems(targets), opts:[['hurt','Injured'],['safe','Avoided']], def:'hurt'});
+    let hit=false; for(const id of targets){ if(r[id]==='hurt'){ hit=true; if(await injure(id)) return; } }
+    if(hit) await afterDamage();
+  }
+  while(targets.length){
+    const str = strength();
+    say(`The Butcher attacks with strength <b>${str}</b>.`, 'do');
+    const def = await ask({type:'choice', meta:{kind:'defender'}, title:`Attack! (strength ${str})`, text:`Survivors choose ONE survivor here to defend.`, options:targets.map(id=>({label:SV[id].name, value:id}))});
+    const res = await ask({type:'choice', meta:{kind:'defence'}, title:`${SV[def].name} defends`, text:`Use up to one item, roll (4 − fear) defence dice, add any trap bonus. Total ≥ <b>${str}</b> repels the Butcher.`, options:[{label:`Repelled (≥ ${str})`, value:'ok'},{label:`Failed (< ${str})`, value:'fail', style:'primary'}]});
+    if(res==='ok'){ say(`${SV[def].name} repels the Butcher! He discards 2 cards from his deck.`, 'info'); deckDiscard(2); await processPending(); break; }
+    if(await injure(def)) return;
+    await afterDamage(); if(S.phase==='over') return;
+    targets = targets.filter(t=>t!==def);
+    if(targets.length) say(`Another survivor is still here — the Butcher attacks again.`, 'do');
+  }
+  say(`Encounter over. Survivors who were here may [MOVE] x1 to flee now.`, 'info');
+  const Ts = S.surv.map((id,i)=> present.includes(id) ? survTrans(i,true) : null);
+  S.belief = applyTrans(S.belief, Ts);
+}
+async function doSense(z){
+  say(`[SENSE] the ${ZONES[z]} zone.`, 'card-play');
+  const locs = L.filter(l=>zoneOf(l)===z);
+  const sel = await ask({type:'multi', meta:{locs, sense:true}, title:`[SENSE] — ${ZONES[z]} zone`, text:`Which survivors are anywhere in the <b>${ZONES[z]}</b> zone (${locs.join(', ')})? Anna never has to answer.`, items:survItems()});
+  zoneEv(z, sel);
+  say(sel.length ? `${sel.map(sname).join(' & ')} ${sel.length>1?'are':'is'} in the ${ZONES[z]} zone.` : `Nobody admits to being in the ${ZONES[z]} zone.`, 'info');
+  await afterSense(sel, locs);
+}
+async function senseLocs(locs, title){
+  const sel = await ask({type:'multi', meta:{locs, sense:true}, title, text:`Which survivors are in <b>${locs.map(nm).join(', ')}</b>? Anna never has to answer.`, items:survItems()});
+  senseSetEv(locs, sel);
+  say(sel.length ? `${sel.map(sname).join(' & ')} ${sel.length>1?'are':'is'} there.` : `Nobody admits to being there.`, 'info');
+  await afterSense(sel, locs);
+}
+// trait follow-ups when a [SENSE] spots someone
+async function afterSense(sel, locs){
+  if(!sel.length || S.phase==='over') return;
+  if(hasT('intent') && canSpend(1)){ spend(1,'Murderous Intent'); say(`Murderous Intent: ${sel.map(sname).join(' & ')} gain${sel.length>1?'':'s'} 1 fear.`, 'card-play'); await giveFear(sel, locs, true); }
+  if(hasT('immediate') && canSpend(1)){
+    const T = huntTarget(true);
+    if(DK[S.killerLoc][T]>=2){ spend(1,'Immediate Response'); stepTo(killerPath(S.killerLoc,T)[1]); }
+  }
+  if(hasT('heightened') && S.turnFlags && !S.turnFlags.heightened){
+    const {z,v} = bestSenseZone();
+    if(v>0.3){ S.turnFlags.heightened=true; say('Heightened Senses: an extra [SENSE].', 'card-play'); await doSense(z); }
+  }
+}
+
+/* ---------- decision helpers ---------- */
+const H = p => (p<=0||p>=1)?0:-(p*Math.log2(p)+(1-p)*Math.log2(1-p));
+function bestSenseZone(){
+  const {m} = marg(); let best=null, bv=-1;
+  for(const z of Object.keys(ZONES)){ let v=0;
+    S.surv.forEach((id,i)=>{ if(id==='anna') return; let pz=0; L.forEach((l,j)=>{ if(zoneOf(l)===z) pz+=m[i][j]; }); v+=H(pz); });
+    if(v>bv){bv=v;best=z;} }
+  return {z:best, v:bv};
+}
+function goalBonus(l){
+  let b=0;
+  if(S.keys>=5 && l===MAP.mainExit) b+=0.6;
+  if(S.keys>=5 && l===MAP.hiddenExit) b+=0.15;
+  if(!S.rescue && l===MAP.radio) b+=0.08*S.repairEst;
+  return b;
+}
+function huntTarget(noRandom=false){
+  const {any} = marg(), K=S.killerLoc;
+  const scored = L.filter(l=> l!==K || any[IX[l]]>=0.1).map(l=>({l, s:(any[IX[l]]+goalBonus(l))/(1+0.12*DK[K][l])})).sort((a,b)=>b.s-a.s);
+  if(!noRandom && rnd()<EPS) return scored[Math.floor(rnd()*Math.min(4,scored.length))].l;
+  return scored[0].l;
+}
+const aggression = () => (S.rescue || S.keys>=5) ? 0.08 : 0;
+
+async function spendActions(n){
+  // returns true if an encounter happened
+  for(let left=n; left>0; left--){
+    const {any} = marg(); const K=S.killerLoc; const here=any[IX[K]];
+    const thr = (left===1?0.15:0.3) - aggression();
+    if(here >= thr){ if(await doSearch()) return true; continue; }
+    // a good neighbour to step into and search next action?
+    if(left>=2){
+      const nb = NB[K].map(l=>({l,p:any[IX[l]]})).sort((a,b)=>b.p-a.p)[0];
+      if(nb && nb.p >= 0.3-aggression()){ stepTo(nb.l); continue; }
+    }
+    // guard the radio if repairs look advanced
+    if(!S.rescue && K===MAP.radio && S.repairEst>=3 && left===1){ say('The Butcher waits by the radio.', 'info'); continue; }
+    const T = huntTarget();
+    if(T===K){ if(await doSearch()) return true; continue; }
+    const path = killerPath(K, T); stepTo(path[1]);
+  }
+  return false;
+}
+
+/* ---------- the killer's turn ---------- */
+async function killerTurn(){
+  S.phase='killer'; S.tempStr=0; S.pending = S.pending||[];
+  S.turnFlags = {encountered:false, emptyAt:null, heightened:false};
+  logTurn(`Round ${S.round} — the Butcher's turn`);
+  if(S.skipTurn){ S.skipTurn=false; say('Lie in Wait: the Butcher skips his first turn.', 'card-play'); return endTurn(false); }
+
+  // 0) reappear from stealth: reveal + free search
+  if(S.stealth){
+    S.stealth=false; S.visibleLoc=null;
+    say(`<b>Reappear!</b> The Butcher was lurking in <b>${nm(S.killerLoc)}</b>. Put his miniature there and remove the stealth tokens.`, 'do');
+    say('He makes a free [SEARCH].', 'info');
+    if(await doSearch()) return endTurn();
+    if(S.phase==='over') return;
+  }
+
+  // 0b) start-of-turn traits
+  await startTraits();
+  if(S.phase==='over') return;
+
+  // 1) fast: Sense while the picture is murky
+  let senses=0;
+  while(has('sense') && senses<2){
+    const {any} = marg(); const {z,v} = bestSenseZone();
+    if(!(v>0.6 && Math.max(...any)<0.6)) break;
+    senses++; play('sense'); await doSense(z); finishCard('sense');
+    if(S.phase==='over') return;
+  }
+
+  // 2) plan
+  let encountered = false;
+  const {any} = marg(); const K = S.killerLoc; const pursues = count('pursue');
+  const agg = aggression();
+  let plan = null;
+  if(has('chainsaw')){
+    let best=null;
+    for(const st of L){ if(DK[K][st] > pursues || !payable('chainsaw', Array(DK[K][st]).fill('pursue'))) continue;
+      const ball = inRange(st,1); const val = Math.max(...ball.map(l=>any[IX[l]])) + 0.15*ball.reduce((t,l)=>t+any[IX[l]],0)/ball.length;
+      if(!best || val>best.val || (val===best.val && DK[K][st]<DK[K][best.st])) best={st,val}; }
+    if(best && best.val >= 0.42-agg) plan={kind:'chainsaw', st:best.st};
+  }
+  if(!plan){
+    let best=null;
+    for(const l of L){ const d=DK[K][l]; if(d>pursues+1) continue; const p=any[IX[l]]; if(!best||p>best.p||(p===best.p&&d<best.d)) best={l,p,d}; }
+    if(best && best.p >= 0.3-agg) plan={kind:'search', t:best.l, p:best.p};
+  }
+  if(!plan && has('rage')){
+    let best=null;
+    for(const l of L){ const d=DK[K][l]; if(d<1 || d>pursues+2 || !payable('rage', Array(Math.max(0,d-2)).fill('pursue'))) continue; const p=any[IX[l]]; if(!best||p>best.p) best={l,p}; }
+    if(best && best.p >= 0.28-agg) plan={kind:'rage', t:best.l};
+  }
+  if(!plan) plan={kind:'hunt', t:huntTarget()};
+
+  // 3) execute
+  if(plan.kind==='chainsaw'){
+    await pursueToward(plan.st, 0);
+    encountered = await doChainsaw();
+    if(S.phase==='over') return;
+    if(S.level>=4 && !encountered){ encountered = await spendActions(2); }
+  } else if(plan.kind==='rage'){
+    await pursueToward(plan.t, 2);
+    encountered = await doRage(plan.t);
+  } else {
+    const keep = Array(Math.min(pursues, Math.max(0, DK[K][plan.t]-1))).fill('pursue').concat(['chainsaw','rage']);
+    if(plan.kind==='search' && plan.p>=0.5 && has('madness') && payable('madness', keep)){
+      const path = killerPath(K, plan.t); const avoid = path.length>1 ? [ekey(path[0],path[1])] : [];
+      const door = chooseBlockDoor(K, avoid);
+      if(door){ play('madness', keep); placeBlock(door.k); S.tempStr+=2; say(`Strength this turn: ${strength()}.`,'info'); finishCard('madness'); }
+    }
+    await pursueToward(plan.t, 1);
+    if(S.level>=4 && has('chainsaw') && payable('chainsaw')){
+      const a2 = marg().any; const ball = inRange(S.killerLoc,1);
+      if(Math.max(...ball.map(l=>a2[IX[l]])) >= 0.4-agg){ encountered = await doChainsaw(); if(S.phase==='over') return; }
+    }
+    if(!encountered) encountered = await spendActions(2);
+  }
+  if(S.phase==='over') return;
+
+  // 4) slow card + end-of-turn traits (only without an encounter)
+  if(!encountered){
+    const K2=S.killerLoc;
+    if(has('stay') && payable('stay') && K2===MAP.radio && S.repairEst>=3 && !S.rescue && doorsAt(K2).some(n=>!S.blocks.includes(ekey(K2,n)))){
+      play('stay'); doorsAt(K2).forEach(n=>{ const k=ekey(K2,n); if(!S.blocks.includes(k)) placeBlock(k); }); finishCard('stay');
+    } else if(has('barricade')){
+      const door = chooseBlockDoor(K2);
+      if(door && door.score>=0.2){ play('barricade'); placeBlock(door.k); finishCard('barricade'); }
+    }
+    await endTraits();
+    if(S.phase==='over') return;
+  }
+  await endTurn();
+}
+async function endTurn(draw=true){
+  if(S.phase==='over') return;
+  if(draw){ drawCards(3); await processPending(); if(S.phase==='over') return; }
+  S.tempStr=0;
+  say(draw ? `The Butcher draws 3 cards. Your turn — play the survivors, then report.` : `Your turn — play the survivors, then report.`, 'info');
+  S.round++; S.phase='survivors';
+  S.report = {noise:[], removed:[], firecracker:false};
+  save(); render();
+}
+async function startTraits(){
+  const K = S.killerLoc;
+  if(hasT('acute') && S.lastNoise.length && canSpend(1)){
+    // sense the noisy room where it's least clear WHO made the noise
+    const {m} = marg(); const who = l => S.surv.reduce((t,id,i)=> id==='anna'?t : t+H(m[i][IX[l]]), 0);
+    const l = S.lastNoise.slice().sort((x,y)=>who(y)-who(x))[0];
+    if(who(l)>0.5){ spend(1,'Acute Hearing'); say(`Acute Hearing: [SENSE] ${nm(l)}, where the noise came from.`, 'card-play'); await senseLocs([l], `Acute Hearing — [SENSE] ${nm(l)}`); if(S.phase==='over') return; }
+  }
+  if(hasT('tracking') && !S.stealth && canSpend(1)){
+    const {m} = marg(); const ball = inRange(K,1);
+    let v=0; S.surv.forEach((id,i)=>{ if(id==='anna') return; v += H(ball.reduce((t,l)=>t+m[i][IX[l]],0)); });
+    if(v>0.5){ spend(1,'Enhanced Tracking'); say(`Enhanced Tracking: [SENSE] everything within 1 range.`, 'card-play'); await senseLocs(ball, `Enhanced Tracking — [SENSE] within 1 range`); if(S.phase==='over') return; }
+  }
+  if(hasT('swift') && !S.stealth && canSpend(2)){
+    const T = huntTarget(true);
+    if(DK[S.killerLoc][T]>=2){ spend(2,'Swift Action'); say('Swift Action: an extra move.', 'card-play'); stepTo(killerPath(S.killerLoc,T)[1]); }
+  }
+}
+async function endTraits(){
+  if(S.stealth) return;
+  const K = S.killerLoc;
+  if(hasT('aura') && S.turnFlags.emptyAt!==K){
+    say(`Terror Aura: every survivor in ${nm(K)} gains 1 fear.`, 'card-play');
+    const sel = await ask({type:'multi', meta:{locs:[K]}, title:`Terror Aura — ${nm(K)}`, text:`Is anyone in <b>${nm(K)}</b>? They each gain 1 fear.`, items:survItems()});
+    presentEv(K, sel);
+    if(sel.length) await giveFear(sel, [K]); else say(`Nobody is in ${nm(K)}.`, 'info');
+    if(S.phase==='over') return;
+  }
+  if(hasT('encircle') && canSpend(2)){
+    const door = chooseBlockDoor(K);
+    if(door && door.score>=0.25){ spend(2,'Total Encirclement'); say('Total Encirclement: an extra block.', 'card-play'); placeBlock(door.k); }
+  }
+  if(hasT('ambush') && canSpend(2)) await tryAmbush();
+}
+async function tryAmbush(){
+  // predict where survivors will be after their next turn; lurk where the free reappear-search pays off
+  const pred = marg(applyTrans(S.belief, S.surv.map((_,i)=>survTrans(i)))).any;
+  const K = S.killerLoc; let best=null;
+  for(const l of inRange(K,2)){ const v = pred[IX[l]]; if(!best || v>best.v) best={l,v}; }
+  if(!best || best.v < 0.22) return;
+  spend(2,'Perilous Ambush');
+  say(`<b>Perilous Ambush:</b> the Butcher slips into [STEALTH]. Put the stealth token in ${nm(K)} and his miniature on the STEALTH circle. He moves 0–2 locations in secret.`, 'do');
+  S.stealth = true; S.visibleLoc = K;
+  S.killerLoc = best.l; // secret; stealth moves never remove block tokens
+}
+async function pursueToward(target, stopAt){
+  // use Pursue (fast) cards to get within `stopAt` steps of target
+  while(has('pursue') && DK[S.killerLoc][target] > stopAt){
+    const path = killerPath(S.killerLoc, target);
+    play('pursue'); stepTo(path[1]); finishCard('pursue');
+  }
+}
+async function doChainsaw(){
+  play('chainsaw', ['rage']);
+  const K = S.killerLoc, ball = inRange(K,1);
+  const sel = await ask({type:'multi', meta:{locs:ball}, title:'Revving Chainsaw! — [FEAR]', text:`Every survivor within 1 range of ${nm(K)} gains 1 fear. That range is: <b>${ball.map(nm).join(', ')}</b>. Tick everyone in range.`, items:survItems()});
+  rangeEv(ball, sel);
+  if(sel.length) await giveFear(sel, ball); else say('Nobody is within range.', 'info');
+  if(S.phase==='over') return true;
+  // move 0-1 to the most likely spot
+  const a = marg().any; let dest = K, bp=a[IX[K]];
+  for(const n of NB[K]) if(a[IX[n]]>bp+0.02){ bp=a[IX[n]]; dest=n; }
+  if(bp < 0.05){ const T=huntTarget(); const p=killerPath(K,T); if(p.length>1) dest=p[1]; }
+  if(dest!==K) stepTo(dest); else say('The Butcher stays where he is.', 'info');
+  const loc = S.killerLoc;
+  const r = await ask({type:'roster', meta:{locs:[loc]}, title:`Chainsaw damage — ${nm(loc)}`, text:`Every survivor in <b>${nm(loc)}</b> takes 1 damage. Mark who is here.`, items:survItems(), opts:[['no','Not here'],['hurt','Injured'],['safe','Here, avoided']], def:'no'});
+  const here = S.surv.filter(id=>r[id]!=='no');
+  presentEv(loc, here);
+  finishCard('chainsaw');
+  let hit=false;
+  for(const id of here){ if(r[id]==='hurt'){ hit=true; if(await injure(id)) return true; } if(r[id]==='safe') say(`${SV[id].name} avoids the damage.`,'info'); }
+  if(hit) await afterDamage();
+  if(!here.length){ say(`Nobody in ${nm(loc)}.`, 'info'); S.turnFlags.emptyAt=loc; }
+  return false; // chainsaw damage is not an encounter
+}
+async function doRage(target){
+  play('rage', []);
+  let t = target, guard=0;
+  while(guard++<4){
+    const path = killerPath(S.killerLoc, t); let removed=false;
+    const steps = Math.min(2, path.length-1);
+    for(let k=1;k<=steps;k++) removed = stepTo(path[k]) || removed;
+    if(steps===0){ const n=NB[S.killerLoc][0]; removed = stepTo(n)||removed; }
+    if(await doSearch()){ finishCard('rage'); return true; }
+    if(!removed) break;
+    say('A block token was smashed and nobody found — Brutal Rage repeats!', 'card-play');
+    const a = marg().any; const cands = L.filter(l=>{const d=DK[S.killerLoc][l]; return d>=1&&d<=2;});
+    t = cands.sort((x,y)=>a[IX[y]]-a[IX[x]])[0];
+  }
+  finishCard('rage');
+  return false;
+}
+function gameOver(w){ S.phase='over'; S.winner=w; PROMPT=null; save(); render(); }
+
+/* ============================================================
+   SURVIVOR REPORT
+   ============================================================ */
+function submitReport(){
+  HISTORY.push(serialize()); if(HISTORY.length>15) HISTORY.shift();
+  const r = S.report;
+  logTurn(`Round ${S.round} — survivors' report`);
+  if(r.removed.length){ r.removed.forEach(k=>{ const [a,b]=k.split('|'); say(`Block removed between ${nm(a)} and ${nm(b)}.`,'info'); }); S.blocks = S.blocks.filter(b=>!r.removed.includes(b)); }
+  // survivors moved
+  S.belief = applyTrans(S.belief, S.surv.map((_,i)=>survTrans(i)));
+  if(r.firecracker){ say('Firecracker! Noise everywhere — the killer learns nothing from noise this turn.', 'info'); S.lastNoise=[]; }
+  else {
+    noiseEvidence(r.noise); S.lastNoise = r.noise.slice();
+    say(r.noise.length ? `Noise heard in: ${r.noise.map(nm).join(', ')}.` : 'Silence. No noise this turn.', 'info');
+    if(r.noise.includes(MAP.radio) && !S.rescue) S.repairEst = Math.min(5, S.repairEst+1);
+  }
+  killerTurn().catch(e=>{ console.error(e); say('Something went wrong: '+e.message, 'bad'); });
+}
+
+/* ============================================================
+   SAVE / LOAD
+   ============================================================ */
+function serialize(){ return JSON.stringify({...S, belief:Array.from(S.belief)}); }
+function deserialize(txt){ const o=JSON.parse(txt); o.belief=Float64Array.from(o.belief); return o; }
+function save(){ try{ localStorage.setItem(SAVE_KEY, serialize()); }catch(e){} }
+function loadSaved(){ try{ const t=localStorage.getItem(SAVE_KEY); if(!t) return null; const o=deserialize(t); return (o.phase==='survivors'||o.phase==='over')?o:null; }catch(e){ return null; } }
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
+/* ============================================================
+   BOARD IMAGE VIEW (your own map images, kept only in this browser)
+   ============================================================ */
+// Room lists for every map, so each board can be lined up now, even before the app can play it.
+const BOARD_MAPS = {
+  mansion:    {name:'The Mansion', rooms:Object.fromEntries(L.map(l=>[l,MAP.locs[l].n])), doors:EDGES.filter(e=>e.door).map(e=>ekey(e.a,e.b))},
+  cabin:      {name:'The Cabin', doors:[], rooms:{B1:'East Campground',B2:'Lakeview House',B3:'Lakeside',B4:'Bonfire Area',B5:'Pinetum Trail',R1:'Reception',R2:'Conference Center',R3:'Game Room',R4:'Room 102',R5:'Room 101',G1:'West Campground',G2:'Forest Track',G3:'Old Quarry',G4:'Cabin',G5:'North Trail'}},
+  laboratory: {name:'The Laboratory', doors:[], rooms:{B1:'Main Laboratory',B2:'Archive',B3:'Office',B4:'Generator Room',B5:'Limestone Cavern',R1:'Bio-Laboratory',R2:'Ancient Ruins',R3:'Abandoned Mine',R4:'Sterile Room',R5:'North Corridor',G1:'Elevator Lobby',G2:'Meeting Room',G3:'Medical Room',G4:'East Corridor',G5:'Lounge'}},
+  castle:     {name:'The Castle', doors:[], rooms:{B1:'Tower',B2:'West Hallway',B3:'Balcony',B4:'Statue Corridor',B5:'Entrance',R1:'Lever Control',R2:'Armory',R3:'Storehouse',R4:'Chamber',R5:'Hall of Nobles',G1:'Gatehouse',G2:'Cistern',G3:'Drawbridge',G4:'Flowerbed',G5:'Cellar'}},
+  tomb:       {name:'The Tomb', doors:[], rooms:{B1:'Cellar',B2:'Coffin Chamber',B3:'Atrium',B4:'Preparation Chamber',B5:'Hypostyle Hall',R1:'Archaeological Camp',R2:'Cliff',R3:'Vestibule',R4:'South Passage',R5:'East Passage',R6:'Relic Chamber',G1:'Burial Chamber',G2:'Ritual Chamber',G3:'Cave of Lament',G4:'Explosion Site',G5:'West Passage',G6:'North Passage'}}
+};
+// Starting estimates measured from 2400x1473 board images (fractions of width/height). A player's own line-up always wins.
+const BOARD_PRESETS = {"mansion":{"rooms":{"B1":[0.3167,0.1969],"B2":[0.4917,0.224],"B3":[0.6583,0.1629],"B4":[0.8167,0.1969],"B5":[0.7,0.4345],"R1":[0.2917,0.4616],"R2":[0.3167,0.6925],"R3":[0.5,0.4481],"R4":[0.5417,0.5974],"R5":[0.4792,0.74],"G1":[0.4167,0.8826],"G2":[0.6042,0.8826],"G3":[0.8625,0.8554],"G4":[0.6833,0.7128],"G5":[0.8583,0.516]},"track":[[0.0283,0.2091],[0.0617,0.2091],[0.095,0.2091],[0.1271,0.2091],[0.1604,0.2091],[0.1929,0.2091]],"doors":{"B1|B2":[0.4004,0.1799],"B2|B3":[0.5671,0.1799],"B3|B4":[0.7512,0.1799],"B2|B5":[0.6133,0.313],"B4|G5":[0.84,0.3218],"B1|R1":[0.2946,0.3252],"B2|R1":[0.3825,0.3693],"B5|R3":[0.6133,0.446],"R1|R3":[0.3837,0.5642],"B5|R4":[0.6133,0.5791],"R1|R2":[0.2954,0.609],"R2|R3":[0.3837,0.6551],"G3|G4":[0.7529,0.7047],"R4|R5":[0.5592,0.6972],"R2|R5":[0.4129,0.7542],"G4|R5":[0.6133,0.7597],"G1|R2":[0.3671,0.8235]}},"cabin":{"rooms":{"R1":[0.35,0.8622],"R2":[0.4792,0.7604],"R3":[0.5708,0.516],"R4":[0.4167,0.5431],"R5":[0.4167,0.4073],"G1":[0.2667,0.7128],"G2":[0.2167,0.5431],"G3":[0.1375,0.258],"G4":[0.2833,0.2716],"G5":[0.4167,0.1629],"B1":[0.7083,0.8147],"B2":[0.8667,0.8011],"B3":[0.8542,0.5974],"B4":[0.7208,0.4752],"B5":[0.6458,0.224]},"track":[[0.0292,0.9077],[0.0596,0.9077],[0.0896,0.9077],[0.1187,0.9077],[0.1487,0.9077],[0.1779,0.9077]]},"laboratory":{"rooms":{"R1":[0.2583,0.1969],"R2":[0.2583,0.4345],"R3":[0.25,0.7604],"R4":[0.4292,0.1833],"R5":[0.575,0.2716],"B1":[0.4583,0.5635],"B2":[0.6042,0.4616],"B3":[0.5917,0.6246],"B4":[0.4792,0.8147],"B5":[0.6833,0.8215],"G1":[0.8542,0.8079],"G2":[0.7167,0.6246],"G3":[0.9042,0.5838],"G4":[0.8167,0.5771],"G5":[0.8542,0.2376]},"track":[[0.0283,0.8642],[0.0617,0.8642],[0.095,0.8642],[0.1271,0.8642],[0.1604,0.8642],[0.1929,0.8642]]},"castle":{"rooms":{"B1":[0.1667,0.7807],"B2":[0.2625,0.7468],"B3":[0.2875,0.3802],"B4":[0.5,0.4752],"B5":[0.7083,0.4413],"R1":[0.3875,0.3462],"R2":[0.5667,0.258],"R3":[0.7417,0.1969],"R4":[0.8667,0.1969],"R5":[0.8458,0.4752],"G1":[0.5417,0.835],"G2":[0.3667,0.7807],"G3":[0.5667,0.6246],"G4":[0.75,0.7807],"G5":[0.875,0.7807]},"track":[[0.025,0.516],[0.0583,0.516],[0.0908,0.516],[0.1237,0.516],[0.1571,0.516],[0.19,0.516]]},"tomb":{"rooms":{"B1":[0.5667,0.0916],"B2":[0.5625,0.258],"B3":[0.5625,0.5024],"B4":[0.5625,0.7196],"B5":[0.5625,0.8622],"R1":[0.7708,0.1901],"R2":[0.8958,0.4752],"R3":[0.875,0.8282],"R4":[0.725,0.8215],"R5":[0.7167,0.482],"R6":[0.6917,0.3259],"G1":[0.2583,0.1765],"G2":[0.2333,0.4752],"G3":[0.375,0.7671],"G4":[0.4167,0.611],"G5":[0.375,0.4888],"G6":[0.3958,0.146]},"track":[[0.0583,0.1256],[0.0583,0.1779],[0.0583,0.2322],[0.0583,0.2865],[0.0583,0.3408],[0.0583,0.3938]]}};
+
+const BOARD = { mapId:MAP.id, url:null, img:null, w:0, h:0, cal:null, view:'schematic', scale:1, calib:null, stream:false, showSetup:false, ioText:'', ioMsg:'' };
+const bkey = id => 'terrorscape-board-' + id;
+const UIKEY = 'terrorscape-board-ui';
+const META = () => BOARD_MAPS[BOARD.mapId];
+const mRooms = () => Object.keys(META().rooms);
+const roomName = c => `${c} ${META().rooms[c]||''}`;
+function readPrefs(id){ try{ return JSON.parse(localStorage.getItem(bkey(id))||'null'); }catch(e){ return null; } }
+function loadCal(){ const o=readPrefs(BOARD.mapId); BOARD.cal = (o && o.cal) || null; }
+function boardPrefsLoad(){
+  loadCal();
+  let u=null; try{ u=JSON.parse(localStorage.getItem(UIKEY)||'null'); }catch(e){}
+  u = u || readPrefs(MAP.id) || {};
+  BOARD.view=u.view||'schematic'; BOARD.scale=u.scale||1; BOARD.stream=!!u.stream;
+}
+function boardPrefsSave(){ try{
+  localStorage.setItem(bkey(BOARD.mapId), JSON.stringify({cal:BOARD.cal}));
+  localStorage.setItem(UIKEY, JSON.stringify({view:BOARD.view, scale:BOARD.scale, stream:BOARD.stream}));
+}catch(e){} }
+function idb(){ return new Promise((res,rej)=>{ if(typeof indexedDB==='undefined') return rej(new Error('no indexedDB'));
+  const r=indexedDB.open('terrorscape-solo',1); r.onupgradeneeded=()=>r.result.createObjectStore('images'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function idbDo(mode, fn){ const db=await idb(); return new Promise((res,rej)=>{ const t=db.transaction('images',mode); const r=fn(t.objectStore('images')); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); }); }
+const idbGet = k => idbDo('readonly', st=>st.get(k));
+const idbPut = (k,v) => idbDo('readwrite', st=>st.put(v,k));
+const idbDel = k => idbDo('readwrite', st=>st.delete(k));
+function dropImg(){ if(BOARD.url) URL.revokeObjectURL(BOARD.url); BOARD.url=null; BOARD.img=null; BOARD.w=0; BOARD.h=0; }
+function useBlob(blob){ return new Promise(res=>{
+  const url = URL.createObjectURL(blob); const img = new Image();
+  img.onload = ()=>{ if(BOARD.url) URL.revokeObjectURL(BOARD.url); BOARD.url=url; BOARD.img=img; BOARD.w=img.naturalWidth; BOARD.h=img.naturalHeight; img.alt='Board'; img.draggable=false; res(true); };
+  img.onerror = ()=>{ URL.revokeObjectURL(url); res(false); };
+  img.src = url; }); }
+function applyStream(){ if(typeof document!=='undefined' && document.body && document.body.classList) document.body.classList.toggle('stream', BOARD.stream); }
+async function setBoardMap(id){
+  BOARD.mapId = id; BOARD.calib = null; loadCal(); dropImg();
+  try{ const b = await idbGet(id); if(b && BOARD.mapId===id) await useBlob(b); }catch(e){}
+  render();
+}
+async function boardInit(){
+  BOARD.mapId = MAP.id; boardPrefsLoad();
+  try{ const b = await idbGet(MAP.id); if(b) await useBlob(b); }catch(e){}
+  applyStream(); render();
+}
+async function loadBoardFile(file){
+  if(!file) return;
+  const ok = await useBlob(file); if(!ok) return render();
+  try{ await idbPut(BOARD.mapId, file); }catch(e){}
+  if(!BOARD.showSetup){ BOARD.view = 'board'; if(!calComplete()) return startCalib('rooms'); }
+  boardPrefsSave(); render();
+}
+async function removeBoard(){
+  try{ await idbDel(BOARD.mapId); }catch(e){}
+  dropImg(); if(!BOARD.showSetup) BOARD.view='schematic'; BOARD.calib=null; boardPrefsSave(); render();
+}
+function placeBoardImg(){ if(typeof document==='undefined') return; const ph=document.getElementById('bimg'); if(ph && ph.replaceWith && BOARD.img) ph.replaceWith(BOARD.img); }
+
+// ---- positions ----
+const trackOK = t => !!(t && t.length===6 && t.every(Boolean));
+const userCalOK = () => !!(BOARD.cal && BOARD.cal.rooms && mRooms().every(l=>BOARD.cal.rooms[l]));
+function presetFor(){
+  const p = BOARD_PRESETS[BOARD.mapId]; if(!p || !BOARD.w || !BOARD.h) return null;
+  const aspect = p.w && p.h ? p.w/p.h : 2400/1473;
+  return Math.abs(BOARD.w/BOARD.h - aspect) < 0.01 && mRooms().every(l=>p.rooms[l]) ? p : null;
+}
+function curCal(){
+  const p = presetFor();
+  if(userCalOK()){ const c=BOARD.cal; return {rooms:c.rooms, doors:c.doors||{}, track: trackOK(c.track) ? c.track : (p ? p.track : null)}; }
+  return p;
+}
+const calComplete = () => !!curCal();
+function calStatus(id){
+  const m = BOARD_MAPS[id], c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal);
+  const n = o => o ? Object.keys(o).length : 0;
+  return { rooms:Math.min(n(c&&c.rooms), Object.keys(m.rooms).length), roomsOf:Object.keys(m.rooms).length,
+           doors:n(c&&c.doors), doorsOf:m.doors.length, track:(c&&c.track||[]).filter(Boolean).length };
+}
+
+// ---- lining up: rooms, then doors (where the app knows them), then the 6 repair-track spaces ----
+function calSteps(){ const m=META(); return [...mRooms().map(id=>({kind:'room',id})), ...m.doors.map(id=>({kind:'door',id})), ...[0,1,2,3,4,5].map(id=>({kind:'track',id}))]; }
+const secStart = kind => calSteps().findIndex(s=>s.kind===kind);
+function stepLabel(st){
+  if(st.kind==='room') return `the middle of <b>${roomName(st.id)}</b>`;
+  if(st.kind==='door'){ const [a,b]=st.id.split('|'); return `the door between <b>${roomName(a)}</b> and <b>${roomName(b)}</b>`; }
+  return st.id===0 ? 'the <b>gear (start) space</b> on the Estimated Repair Progress track' : `space <b>${st.id}</b> on the repair track`;
+}
+function startCalib(from){
+  if(!BOARD.img) return;
+  if(!BOARD.cal) BOARD.cal = {rooms:{}, doors:{}, track:[]};
+  BOARD.cal.doors = BOARD.cal.doors || {}; BOARD.cal.track = BOARD.cal.track || [];
+  let i = secStart(from==='doors'?'door':from==='track'?'track':'room');
+  if(i<0) i = secStart('track');
+  BOARD.calib = {i, only: from==='rooms' ? null : from};
+  render();
+}
+function calClick(fx, fy){
+  const steps = calSteps(), st = steps[BOARD.calib.i]; if(!st) return;
+  const p = [+fx.toFixed(4), +fy.toFixed(4)];
+  if(st.kind==='room') BOARD.cal.rooms[st.id]=p; else if(st.kind==='door') BOARD.cal.doors[st.id]=p; else BOARD.cal.track[st.id]=p;
+  BOARD.cal.w = BOARD.w; BOARD.cal.h = BOARD.h;
+  BOARD.calib.i++; boardPrefsSave();
+  const next = steps[BOARD.calib.i];
+  if(!next || (BOARD.calib.only && next.kind!==st.kind)) return finishCalib();
+  render();
+}
+function calBack(){
+  if(!BOARD.calib || BOARD.calib.i===0) return;
+  const all=calSteps(); if(BOARD.calib.only && all[BOARD.calib.i-1].kind!==all[BOARD.calib.i].kind) return;
+  BOARD.calib.i--; const st=calSteps()[BOARD.calib.i];
+  if(st.kind==='room') delete BOARD.cal.rooms[st.id]; else if(st.kind==='door') delete BOARD.cal.doors[st.id]; else BOARD.cal.track[st.id]=null;
+  boardPrefsSave(); render();
+}
+function calSkip(){ // skip the rest of this section
+  const steps=calSteps(), kind=steps[BOARD.calib.i].kind;
+  let i=BOARD.calib.i; while(steps[i] && steps[i].kind===kind) i++;
+  if(!steps[i] || BOARD.calib.only) return finishCalib();
+  BOARD.calib.i=i; render();
+}
+function finishCalib(){ BOARD.calib=null; if(!BOARD.showSetup && calComplete()) BOARD.view='board'; boardPrefsSave(); render(); }
+function clearPositions(){ BOARD.cal=null; boardPrefsSave(); render(); }
+
+// ---- saving positions outside the browser ----
+function exportPositions(){
+  const out = {};
+  for(const id of Object.keys(BOARD_MAPS)){ const c = id===BOARD.mapId ? BOARD.cal : ((readPrefs(id)||{}).cal); if(c && c.rooms && Object.keys(c.rooms).length) out[id]=c; }
+  return JSON.stringify(out);
+}
+function doExport(){
+  BOARD.ioText = exportPositions();
+  const n = Object.keys(JSON.parse(BOARD.ioText)).length;
+  BOARD.ioMsg = n ? `Positions for ${n} map${n>1?'s':''} are in the box below.` : 'No positions saved yet.';
+  try{ if(n && navigator.clipboard) navigator.clipboard.writeText(BOARD.ioText).then(()=>{ BOARD.ioMsg += ' Copied to the clipboard.'; render(); }, ()=>{}); }catch(e){}
+  render();
+}
+function doImport(){
+  const el = typeof document!=='undefined' && document.getElementById('bio'); const txt = el ? el.value : BOARD.ioText;
+  let o; try{ o = JSON.parse(txt); }catch(e){ BOARD.ioMsg='That text isn\'t a positions backup.'; return render(); }
+  const got = [];
+  for(const id of Object.keys(BOARD_MAPS)) if(o && o[id] && o[id].rooms){ try{ localStorage.setItem(bkey(id), JSON.stringify({cal:o[id]})); got.push(BOARD_MAPS[id].name); }catch(e){} }
+  loadCal(); BOARD.ioText = txt;
+  BOARD.ioMsg = got.length ? `Loaded positions for ${got.join(', ')}.` : 'No map positions found in that text.';
+  render();
+}
+
+// ---- drawing ----
+const BW = 1000;
+const BH = () => Math.round(BW*BOARD.h/BOARD.w);
+const CC = () => BOARD.calib ? BOARD.cal : curCal();
+const P2 = c => ({x:c[0]*BW, y:c[1]*BH()});
+function bp(l){ return P2(CC().rooms[l]); }
+function doorPt(k){ const cc=CC(), d=cc.doors && cc.doors[k]; if(d) return P2(d);
+  const [a,b]=k.split('|'), A=bp(a), B=bp(b); return {x:(A.x+B.x)/2, y:(A.y+B.y)/2}; }
+const BDEFS = `<defs>
+  <radialGradient id="bheat"><stop offset="0" stop-color="#ff3b2a" stop-opacity=".8"/><stop offset=".55" stop-color="#c0392b" stop-opacity=".4"/><stop offset="1" stop-color="#c0392b" stop-opacity="0"/></radialGradient>
+  <filter id="bsh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity=".75"/></filter>
+</defs>`;
+const tok = (p, inner, extra='') => `<g transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)}) scale(${BOARD.scale})" ${extra}>${inner}</g>`;
+function dotsSVG(c, cur){
+  let s=''; if(!c) return s;
+  const rooms=c.rooms||{}, doors=c.doors||{}, track=c.track||[];
+  for(const l of mRooms()){ const r=rooms[l]; if(!r) continue;
+    s += tok(P2(r), `<circle r="9" fill="var(--gold)" stroke="#000" stroke-width="2"/><text x="13" y="6" font-size="18" font-weight="800" fill="#fff" stroke="#000" stroke-width="4" paint-order="stroke">${l}</text>`); }
+  for(const k of META().doors){ const d=doors[k]; if(!d) continue;
+    s += tok(P2(d), `<rect x="-7" y="-7" width="14" height="14" rx="2" fill="#fff" stroke="#000" stroke-width="2"/>`); }
+  track.forEach((t,i)=>{ if(t) s += tok(P2(t), `<circle r="13" fill="none" stroke="#c9a8f0" stroke-width="4"/><text y="-17" font-size="14" font-weight="800" text-anchor="middle" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${i||'⚙'}</text>`); });
+  if(cur && cur.kind==='door') for(const l of cur.id.split('|')) if(rooms[l]) s += tok(P2(rooms[l]), `<circle r="26" fill="none" stroke="var(--blood2)" stroke-width="4" stroke-dasharray="6 5"/>`);
+  return s;
+}
+function boardHTML(mode='game'){
+  const H = BH();
+  let s = `<div class="boardwrap"><span id="bimg"></span><svg class="ov" viewBox="0 0 ${BW} ${H}" preserveAspectRatio="none" ${mode==='calib'?'data-act="calclick"':''}>${BDEFS}`;
+  if(mode==='calib') return s + dotsSVG(BOARD.cal, calSteps()[BOARD.calib.i]) + `</svg></div>`;
+  if(mode==='preview') return s + dotsSVG(curCal() || BOARD.cal) + `</svg></div>`;
+  const any = S.mind ? marg().any : null;
+  const noiseSet = S.phase==='survivors' ? S.report.noise : S.lastNoise;
+  const shownK = S.stealth ? S.visibleLoc : S.killerLoc;
+  // heat map (killer's mind)
+  if(any) for(const l of L){ const h=any[IX[l]]; if(h<0.02) continue;
+    s += tok(bp(l), `<circle r="72" fill="url(#bheat)" opacity="${Math.min(1,0.3+h).toFixed(2)}"/>`); }
+  // block tokens
+  for(const k of S.blocks){ const gone = S.phase==='survivors' && S.report.removed.includes(k);
+    s += tok(doorPt(k), `<g filter="url(#bsh)" opacity="${gone?0.35:1}"><rect x="-17" y="-17" width="34" height="34" rx="6" fill="#f4efe9" stroke="#b3271b" stroke-width="3.5"/><path d="M-8,-8 L8,8 M8,-8 L-8,8" stroke="#b3271b" stroke-width="5" stroke-linecap="round"/></g>`); }
+  // noise tokens
+  for(const l of noiseSet){ const p=bp(l);
+    s += tok({x:p.x-38*BOARD.scale, y:p.y-30*BOARD.scale}, `<g filter="url(#bsh)"><path d="M0,-24 L22,14 L-22,14Z" fill="#f2c230" stroke="#3a2a00" stroke-width="3" stroke-linejoin="round"/><text y="10" font-size="24" font-weight="900" text-anchor="middle" fill="#2a1d00">!</text></g>`); }
+  // the Butcher / stealth token
+  if(shownK){ const p=bp(shownK);
+    s += S.stealth
+      ? tok(p, `<g filter="url(#bsh)"><circle r="28" fill="#2a2030" stroke="#c9a8f0" stroke-width="3.5" stroke-dasharray="6 4"/><text y="9" font-size="27" font-weight="800" text-anchor="middle" fill="#e6d4fb">?</text></g>`)
+      : tok(p, `<g filter="url(#bsh)" class="killer-tok"><circle r="30" fill="#b3271b" stroke="#fff" stroke-width="4"/><text y="10" font-size="28" text-anchor="middle">🔪</text></g>`);
+  }
+  if(S.stealth && S.mind){ const p=bp(S.killerLoc); s += tok({x:p.x+26*BOARD.scale, y:p.y+22*BOARD.scale}, `<circle r="15" fill="var(--purple)" stroke="#fff" stroke-width="2"/><text y="5" font-size="14" text-anchor="middle">🔪</text>`); }
+  // the killer's repair estimate on the track (hidden info, so only with the killer's mind on)
+  const trk = (curCal()||{}).track;
+  if(S.mind && trk){ const t=trk[Math.max(0,Math.min(5,S.repairEst))];
+    if(t) s += tok(P2(t), `<g filter="url(#bsh)"><circle r="21" fill="rgba(155,107,209,.35)" stroke="#c9a8f0" stroke-width="5"/></g><title>Killer's repair estimate: ${S.repairEst}/5</title>`); }
+  // chance labels
+  if(any) for(const l of L){ const h=any[IX[l]]; if(h<0.01) continue; const p=bp(l);
+    s += tok({x:p.x, y:p.y+50*BOARD.scale}, `<rect x="-26" y="-14" width="52" height="25" rx="12" fill="rgba(18,10,14,.82)" stroke="#9b6bd1" stroke-width="1.5"/><text y="5" font-size="16" font-weight="800" text-anchor="middle" fill="#f3d9ff">${Math.round(h*100)}%</text>`); }
+  // tap targets for marking noise
+  if(S.phase==='survivors') for(const l of L){ const p=bp(l);
+    s += `<circle class="hit" data-node="${l}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(58*BOARD.scale).toFixed(1)}" fill="transparent"><title>${nm(l)}</title></circle>`; }
+  return s + `</svg></div>`;
+}
+const fileBtn = (label, cls='btn sm') => `<label class="${cls}" style="display:inline-block">${label}<input type="file" accept="image/*" data-act="boardfile" hidden></label>`;
+function loaderHTML(){
+  return `<div class="prompt" style="margin:0"><h3>Use your own board image</h3>
+  <div class="small">Choose the ${META().name} board image from your computer, for example the Tabletop Simulator map. It's kept in this browser only. It isn't uploaded and isn't saved into the app.</div>
+  <div style="margin-top:10px">${fileBtn('Choose image…','btn primary')}</div></div>`;
+}
+function boardTools(){
+  return `<div class="row small" style="margin-top:8px">${fileBtn('Change image')}
+    <button class="btn sm" data-act="bsetup">Board setup</button>
+    <span class="muted">Token size</span><button class="btn sm" data-act="bscale" data-d="-0.1">−</button><b>${Math.round(BOARD.scale*100)}%</b><button class="btn sm" data-act="bscale" data-d="0.1">+</button></div>`;
+}
+function mapPanel(){
+  const tog = `<div class="row" style="margin-bottom:8px">
+    <button class="btn sm ${BOARD.view==='schematic'?'on':''}" data-act="view" data-v="schematic">Schematic</button>
+    <button class="btn sm ${BOARD.view==='board'?'on':''}" data-act="view" data-v="board">Board</button>
+    <span class="spacer"></span><button class="btn sm ${BOARD.stream?'on':''}" data-act="stream">Stream layout</button></div>`;
+  if(BOARD.view==='board'){
+    if(!BOARD.img) return tog + loaderHTML();
+    if(!calComplete()) return tog + `<div class="prompt" style="margin:0"><h3>Line up the board</h3><div class="small">Click each room on your image once so the app knows where to put its tokens. It's saved in this browser, and you can back it up from Board setup.</div><div class="row" style="margin-top:10px"><button class="btn primary" data-act="calib" data-from="rooms">Start</button></div></div>`;
+    return tog + boardHTML() + `<div class="small muted" style="margin-top:6px">⚠ noise · ✕ block token · 🔪 the Butcher · ? stealth token${S.phase==='survivors'?' · tap a room to mark noise':''}</div>` + boardTools();
+  }
+  return tog + mapSVG() + `<div class="small muted" style="margin-top:4px">Solid lines = doors · dashed green = open paths · purple = secret passages · ✕ = block token · ! = noise · 🔪 = the Butcher · ? = stealth token</div>`;
+}
+function calibHTML(){
+  const steps=calSteps(), i=BOARD.calib.i, st=steps[i];
+  const secs = {room:'Room', door:'Door', track:'Repair track'};
+  const inSec = steps.filter(s=>s.kind===st.kind), k = i - secStart(st.kind);
+  const help = st.kind==='room' ? 'Click the middle of each room. The Butcher, noise and heat markers are drawn there.'
+    : st.kind==='door' ? 'Click each door so block tokens sit right on it. Doors are optional: skipped ones go halfway between the two rooms.'
+    : 'Click the 6 spaces of the Estimated Repair Progress track, starting with the gear. The killer\'s repair estimate is marked there. Optional.';
+  return `<main style="grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);grid-template-areas:'map side';max-width:none">
+  <div class="a-map card calib" style="padding:8px">${boardHTML('calib')}</div>
+  <div class="a-side card"><h2>Line up ${META().name}</h2>
+    <div class="small muted">${help}</div>
+    <div class="prompt"><h3>${secs[st.kind]} ${k+1} of ${inSec.length}</h3><div>Click ${stepLabel(st)}.</div></div>
+    <div class="row" style="margin-top:12px">
+      ${i>0?'<button class="btn" data-act="calback">↶ Back</button>':''}
+      ${st.kind!=='room'?`<button class="btn primary" data-act="calskip">Skip ${st.kind==='door'?'the doors':'the track'}</button>`:''}
+      <button class="btn ghost" data-act="calcancel">${userCalOK()?'Done':'Stop here'}</button>
+    </div>
+    <div class="small muted" style="margin-top:10px">Every click is saved as you go.</div></div></main>`;
+}
+function boardSetupHTML(){
+  const ids = Object.keys(BOARD_MAPS), st = calStatus(BOARD.mapId), m = META();
+  const tabs = ids.map(id=>`<button class="btn sm ${id===BOARD.mapId?'on':''}" data-act="bmap" data-m="${id}">${BOARD_MAPS[id].name}</button>`).join('');
+  const table = ids.map(id=>{ const c=calStatus(id); const ok=(a,b)=>a>=b?'✓':`${a}/${b}`;
+    return `<tr><td>${BOARD_MAPS[id].name}</td><td>${ok(c.rooms,c.roomsOf)}</td><td>${c.doorsOf?ok(c.doors,c.doorsOf):'—'}</td><td>${ok(c.track,6)}</td></tr>`; }).join('');
+  const using = !BOARD.img ? '' : userCalOK() ? 'Using your own positions.' : presetFor() ? 'Using the built-in estimate until you line it up.' : 'Not lined up yet.';
+  return `<main style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);grid-template-areas:'map side';max-width:none">
+  <div class="a-map card" style="padding:8px"><div class="row" style="margin-bottom:8px">${tabs}</div>${BOARD.img ? boardHTML('preview') : loaderHTML()}</div>
+  <div class="a-side card"><h2>Board setup</h2>
+    <div class="small muted">Line up each map's image once. Positions save in this browser as you click. Use <b>Copy positions</b> to back them up or share them.</div>
+    <h3>${m.name}</h3>
+    <div class="small">${BOARD.img?`Image loaded (${BOARD.w} × ${BOARD.h}). ${using}`:'No image loaded for this map in this browser.'}</div>
+    <div class="row" style="margin-top:8px">${fileBtn(BOARD.img?'Change image':'Choose image…')}
+      ${BOARD.img?`<button class="btn sm primary" data-act="calib" data-from="rooms">Line up rooms (${st.rooms}/${st.roomsOf})</button>`:''}
+      ${BOARD.img && m.doors.length?`<button class="btn sm" data-act="calib" data-from="doors">Doors (${st.doors}/${st.doorsOf})</button>`:''}
+      ${BOARD.img?`<button class="btn sm" data-act="calib" data-from="track">Repair track (${st.track}/6)</button>`:''}
+    </div>
+    <div class="row small" style="margin-top:6px">${BOARD.cal?'<button class="btn sm ghost" data-act="bclear">Clear this map\'s positions</button>':''}${BOARD.img?'<button class="btn sm ghost" data-act="bremove">Remove image</button>':''}</div>
+    ${m.doors.length?'':'<div class="small muted" style="margin-top:6px">Doors for this map get lined up once the app can play it.</div>'}
+    <h3>All maps</h3>
+    <table class="small" style="width:100%;border-collapse:collapse"><tr class="muted"><td>Map</td><td>Rooms</td><td>Doors</td><td>Track</td></tr>${table}</table>
+    <h3>Back up positions</h3>
+    <div class="row"><button class="btn sm" data-act="bexport">Copy positions</button><button class="btn sm" data-act="bimport">Load pasted positions</button></div>
+    ${BOARD.ioMsg?`<div class="small" style="margin-top:6px">${BOARD.ioMsg}</div>`:''}
+    <textarea id="bio" spellcheck="false" placeholder="Positions text appears here. Paste a backup here to load it." style="width:100%;height:90px;margin-top:6px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;font:12px monospace">${BOARD.ioText.replace(/</g,'&lt;')}</textarea>
+    <div class="row" style="margin-top:12px"><button class="btn primary" data-act="bsetupclose">Done</button></div>
+  </div></main>`;
+}
+function boardScreenHTML(){
+  if(BOARD.calib && BOARD.img) return calibHTML();
+  if(BOARD.showSetup) return boardSetupHTML();
+  return null;
+}
+function setupBoardHTML(){
+  const status = !BOARD.img ? 'Not loaded. The app uses its own schematic map.' : userCalOK() ? 'Loaded and lined up.' : calComplete() ? 'Loaded, using the built-in estimate.' : 'Loaded, but not lined up yet.';
+  return `<h3>Board image (optional)</h3>
+  <div class="small muted">Show the game on your own board images, for example the Tabletop Simulator maps. They stay in this browser only. Mansion: <b style="color:var(--text)">${status}</b></div>
+  <div class="row" style="margin-top:6px"><button class="btn sm" data-act="bsetup">Board setup (all maps)</button>
+    <button class="btn sm ${BOARD.stream?'on':''}" data-act="stream">Stream layout</button></div>`;
+}
+
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const zc = z => z==='B'?'var(--blue)':z==='R'?'var(--red)':'var(--green)';
+function mapSVG(){
+  const clickable = S.phase==='survivors';
+  const {any} = S.mind ? marg() : {any:null};
+  let s = `<svg viewBox="150 70 930 570" role="img" aria-label="Mansion map">`;
+  // edges
+  for(const e of EDGES){ const A=MAP.locs[e.a], B=MAP.locs[e.b];
+    s += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${e.door?'#8c7b74':'#6b9f70'}" stroke-width="${e.door?4:3.5}" ${e.door?'':'stroke-dasharray="10 8"'}/>`; }
+  for(const [a,b,lab] of MAP.passages){ const A=MAP.locs[a], B=MAP.locs[b]; const mx=(A.x+B.x)/2+ (lab==='I'?-120:0), my=(A.y+B.y)/2 + (lab==='I'?0:-70);
+    s += `<path d="M${A.x},${A.y} Q${mx},${my} ${B.x},${B.y}" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="4 7" opacity=".8"/>`;
+    s += `<text x="${(A.x+2*mx+B.x)/4}" y="${(A.y+2*my+B.y)/4}" fill="var(--purple)" font-size="18" font-weight="700" text-anchor="middle">${lab}</text>`; }
+  // blocks
+  for(const k of S.blocks){ const [a,b]=k.split('|'), A=MAP.locs[a], B=MAP.locs[b]; const x=(A.x+B.x)/2, y=(A.y+B.y)/2;
+    s += `<g><rect x="${x-17}" y="${y-11}" width="34" height="22" rx="4" fill="#f2ece8" stroke="var(--blood)" stroke-width="3"/><text x="${x}" y="${y+7}" font-size="18" text-anchor="middle" fill="var(--blood)" font-weight="700">✕</text></g>`; }
+  // exits
+  const R1=MAP.locs[MAP.mainExit], G5=MAP.locs[MAP.hiddenExit];
+  s += `<text x="${R1.x-76}" y="${R1.y+6}" fill="var(--gold)" font-size="16" text-anchor="end">Main</text><text x="${R1.x-76}" y="${R1.y+24}" fill="var(--gold)" font-size="16" text-anchor="end">Exit ▸</text>`;
+  s += `<text x="${G5.x+76}" y="${G5.y+6}" fill="var(--gold)" font-size="16">◂ Hidden</text><text x="${G5.x+76}" y="${G5.y+24}" fill="var(--gold)" font-size="16">Exit</text>`;
+  // nodes
+  for(const l of L){ const o=MAP.locs[l]; const w=152,h=60;
+    const noise = S.phase==='survivors' ? S.report.noise.includes(l) : S.lastNoise.includes(l);
+    const heat = any ? any[IX[l]] : 0;
+    const fill = any ? `rgba(192,57,43,${(0.08+heat*0.85).toFixed(2)})` : '#231c1a';
+    s += `<g class="node ${clickable?'clickable':''}" data-node="${l}">`;
+    s += `<rect x="${o.x-w/2}" y="${o.y-h/2}" width="${w}" height="${h}" rx="7" fill="${fill}" stroke="${zc(zoneOf(l))}" ${noise?'stroke-dasharray="5 3"':''}/>`;
+    s += `<text class="code" x="${o.x-w/2+9}" y="${o.y-5}">${l}</text>`;
+    let icons=''; if(MAP.search.includes(l)) icons+='🔑'; if(l===MAP.radio) icons+='⚙️'; if(l===MAP.knowledge) icons+='📖'; if(l===MAP.mystic) icons+='🌀'; if(l===MAP.tool) icons+='🔨';
+    s += `<text x="${o.x+w/2-8}" y="${o.y-6}" text-anchor="end" style="font-size:16px">${icons}</text>`;
+    s += `<text x="${o.x-w/2+9}" y="${o.y+18}">${o.n}</text>`;
+    if(any) s += `<text x="${o.x+w/2-8}" y="${o.y-6}" text-anchor="end" style="font-size:15px;font-weight:700" fill="#f3d9ff" transform="translate(0,25)">${Math.round(heat*100)}%</text>`;
+    if(noise) s += `<g><circle cx="${o.x-w/2+2}" cy="${o.y-h/2+2}" r="14" fill="var(--gold)"/><text x="${o.x-w/2+2}" y="${o.y-h/2+9}" text-anchor="middle" font-size="19" font-weight="700" fill="#2a1d00">!</text></g>`;
+    const shownK = S.stealth ? S.visibleLoc : S.killerLoc;
+    if(shownK===l) s += S.stealth
+      ? `<g opacity=".75"><circle cx="${o.x+w/2-4}" cy="${o.y+h/2-4}" r="19" fill="#2a2030" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="4 3"/><text x="${o.x+w/2-4}" y="${o.y+h/2+3}" text-anchor="middle" font-size="18" fill="#d9c3f5">?</text></g>`
+      : `<g><circle cx="${o.x+w/2-4}" cy="${o.y+h/2-4}" r="19" fill="var(--blood)" stroke="#fff" stroke-width="2.5"/><text x="${o.x+w/2-4}" y="${o.y+h/2+3}" text-anchor="middle" font-size="18">🔪</text></g>`;
+    if(S.stealth && S.mind && S.killerLoc===l) s += `<g><circle cx="${o.x-w/2+16}" cy="${o.y+h/2-4}" r="13" fill="var(--purple)"/><text x="${o.x-w/2+16}" y="${o.y+h/2+1}" text-anchor="middle" font-size="13">🔪</text></g>`;
+    s += `</g>`; }
+  s += `</svg>`;
+  return s;
+}
+function logHTML(){
+  return S.log.slice().reverse().map(t=>`<div class="turn"><div class="head">${t.head}</div>${t.lines.map(l=>`<div class="l ${l.kind}">${l.text}</div>`).join('')}</div>`).join('');
+}
+function promptHTML(){
+  const P = PROMPT; if(!P) return '';
+  let h = `<div class="prompt"><h3>${P.title}</h3><div class="small">${P.text}</div><div style="margin-top:10px">`;
+  if(P.type==='choice'){
+    h += `<div class="row">${P.options.map((o,i)=>`<button class="btn ${o.style||''}" data-act="choice" data-i="${i}">${o.label}</button>`).join('')}</div>`;
+  } else if(P.type==='multi'){
+    h += `<div class="chips">${P.items.map(it=>`<button class="chip ${P.sel.includes(it.value)?'on':''}" data-act="msel" data-v="${it.value}">${it.label}</button>`).join('')}</div>`;
+    h += `<div class="row" style="margin-top:10px"><button class="btn primary" data-act="mconfirm">${P.sel.length?'Confirm':'Nobody'}</button></div>`;
+  } else if(P.type==='roster'){
+    h += P.items.map(it=>{ const cur = P.vals[it.value]||P.def; return `<div class="roster-row"><span>${it.label}</span><span class="row">${P.opts.map(([v,lab])=>`<button class="btn sm ${cur===v?'on':''}" data-act="rsel" data-id="${it.value}" data-v="${v}">${lab}</button>`).join('')}</span></div>`; }).join('');
+    h += `<div class="row" style="margin-top:10px"><button class="btn primary" data-act="rconfirm">Confirm</button></div>`;
+  }
+  return h + `</div></div>`;
+}
+function reportHTML(){
+  const r=S.report;
+  const blocks = S.blocks.map(k=>{ const [a,b]=k.split('|'); return `<button class="chip ${r.removed.includes(k)?'on':''}" data-act="rmblock" data-k="${k}">${a} ↔ ${b}</button>`; }).join('') || '<span class="muted small">No block tokens on the map.</span>';
+  return `
+  <h2>Round ${S.round} — Survivors' turn</h2>
+  ${S.stealth?`<div class="prompt" style="margin:0 0 10px"><b>The Butcher is in [STEALTH].</b> <span class="small">He vanished from ${nm(S.visibleLoc)} and could be up to 2 locations away. He'll reappear and search at the start of his turn.</span></div>`:''}
+  <div class="small muted">Play your three survivors at the table (remove last round's noise tokens first). Then tell the killer only what the rules require.</div>
+  <h3>1. Where are the noise tokens?</h3>
+  <div class="small muted" style="margin-bottom:6px">Tap rooms on the map or below.</div>
+  <div class="chips">${L.map(l=>`<button class="chip ${zoneOf(l)} ${r.noise.includes(l)?'on':''}" data-act="noise" data-l="${l}">${l} ${MAP.locs[l].n}</button>`).join('')}</div>
+  <label class="tog"><input type="checkbox" data-act="fc" ${r.firecracker?'checked':''}> A Firecracker covered all the noise this turn</label>
+  <h3>2. Block tokens you removed</h3>
+  <div class="chips">${blocks}</div>
+  <h3>3. Public info</h3>
+  <div class="row small"><span>Keys on the key stand:</span>
+    <button class="btn sm" data-act="keys" data-d="-1">−</button><b>${S.keys}</b><button class="btn sm" data-act="keys" data-d="1">+</button></div>
+  <label class="tog"><input type="checkbox" data-act="rescue" ${S.rescue?'checked':''}> The radio is repaired (rescue token on the screen)</label>
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" data-act="submit">End survivors' turn → Butcher's turn</button>
+  </div>
+  <div class="row" style="margin-top:12px">
+    ${HISTORY.length?'<button class="btn sm ghost" data-act="undo">↶ Undo last round</button>':''}
+    <button class="btn sm ghost" data-act="win-s">Survivors won</button>
+    <button class="btn sm ghost" data-act="win-k">Killer won</button>
+  </div>`;
+}
+function mindHTML(){
+  if(!S.mind) return '';
+  const {m, any} = marg();
+  const surv = S.surv.map((id,i)=>{ const top = L.map((l,j)=>({l,p:m[i][j]})).sort((a,b)=>b.p-a.p).slice(0,3);
+    return `<div style="margin:6px 0"><b>${SV[id].name}</b> ${top.map(t=>`<span class="small">${t.l} ${Math.round(t.p*100)}%</span>`).join(' · ')}<div class="bar"><i style="width:${Math.round(top[0].p*100)}%"></i></div></div>`; }).join('');
+  return `<div class="card mind"><h2>👁 The killer's mind (spoilers)</h2>
+    <div class="small muted">Red shading on the map = chance at least one survivor is there.</div>${surv}
+    ${S.stealth?`<div class="small" style="margin-top:6px;color:#d9c3f5">In stealth — actually lurking in ${nm(S.killerLoc)}.</div>`:''}
+    <div class="small" style="margin-top:8px">Hand (${S.hand.length}): ${S.hand.map(c=>C(c).name).join(', ')||'—'}<br>Deck: ${S.deck.length} · Discard: ${S.discard.length} · Estimated repair: ${S.repairEst}/5</div></div>`;
+}
+function setupHTML(saved){
+  return `<main style="grid-template-columns:1fr;max-width:820px">
+  <div class="card">
+    <h2>New game</h2>
+    <div class="small muted">Map: <b style="color:var(--text)">The Mansion</b> · Killer: <b style="color:var(--text)">The Butcher</b> (more to come). You play the survivors at the table; this app plays the killer from behind the screen.</div>
+    ${saved?`<div class="prompt"><h3>Game in progress</h3><div class="small">Round ${saved.round} with ${saved.surv.map(sname).join(', ')}.</div><div class="row" style="margin-top:8px"><button class="btn primary" data-act="resume">Resume</button><button class="btn" data-act="discard-save">Discard it</button></div></div>`:''}
+    <h3>Choose 3 survivors (${SETUP.surv.length}/3)</h3>
+    <div class="surv-pick">${SURVIVORS.map(s=>`<button class="surv ${SETUP.surv.includes(s.id)?'on':''}" data-act="pick" data-id="${s.id}"><b>${s.name}</b><span>${s.note}</span></button>`).join('')}</div>
+    <h3>Difficulty</h3>
+    <div class="row">${Object.entries(DIFF).map(([k,d])=>`<button class="btn ${SETUP.diff===k?'on':''}" data-act="diff" data-k="${k}">${d.label}</button>`).join('')}</div>
+    <div class="small muted" style="margin-top:6px">${DIFF[SETUP.diff].desc}${DIFF[SETUP.diff].draw?' The Butcher keeps the traits that suit him best.':''}</div>
+    ${setupBoardHTML()}
+    <label class="tog"><input type="checkbox" data-act="mind" ${SETUP.mind?'checked':''}> Show the killer's mind (heat map + hand — spoilers, for testing)</label>
+    <div class="row" style="margin-top:12px"><button class="btn primary" data-act="start" ${SETUP.surv.length===3?'':'disabled style="opacity:.5"'}>Start game</button></div>
+  </div></main>`;
+}
+let SAVED_CACHE;
+function render(){
+  const app = document.getElementById('app');
+  { const bs = boardScreenHTML(); if(bs){ app.innerHTML = `<header><h1>TERRORSCAPE · Solo Killer</h1></header>` + bs; placeBoardImg(); return; } }
+  if(!S){ app.innerHTML = `<header><h1>TERRORSCAPE · Solo Killer</h1></header>` + setupHTML(SAVED_CACHE); return; }
+  const health = `<span class="stat">${S.surv.map(id=>`${sname(id)}<span class="hp ${S.injured[id]?'hurt':'ok'}">${S.injured[id]?'hurt':'ok'}</span>`).join(' ')}</span>`;
+  const head = `<header><h1>TERRORSCAPE · Solo Killer</h1>
+    <span class="stat">Round <b>${S.round}</b></span><span class="stat">Butcher Lv <b>${S.level}</b></span><span class="stat">Strength <b>${strength()}</b></span>
+    <span class="stat">Blocks on map <b>${S.blocks.length}/7</b></span>${health}<span class="spacer"></span>
+    <button class="btn sm ghost" data-act="mindtoggle">${S.mind?'Hide':'Show'} killer's mind</button><button class="btn sm ghost" data-act="quit">New game</button></header>`;
+  let side;
+  if(S.phase==='over'){
+    side = `<div class="card over"><h2 style="color:${S.winner==='killer'?'var(--blood2)':'var(--green)'}">${S.winner==='killer'?'The Butcher wins.':'The survivors escape!'}</h2><div class="muted">Game over after ${S.round} round${S.round>1?'s':''}.</div><div class="row" style="justify-content:center;margin-top:14px"><button class="btn primary" data-act="quit">New game</button></div></div>`;
+  } else if(S.phase==='survivors'){
+    side = `<div class="card">${reportHTML()}</div>`;
+  } else {
+    side = `<div class="card"><h2>The Butcher's turn</h2><div class="small muted">Follow the instructions in the log, moving his miniature and tokens on your map. Answer honestly when he asks.</div>${promptHTML()}${PROMPT?'':'<div class="muted small" style="margin-top:10px">…</div>'}</div>`;
+  }
+  const traitsCard = (S.traits&&S.traits.length) ? `<details class="card" style="margin-bottom:14px"><summary style="cursor:pointer"><b style="color:var(--purple)">Butcher's traits</b> <span class="small muted">(${DIFF[S.diff].label} — public, tap to read)</span>: ${S.traits.map(t=>TRAITS[t].name).join(', ')}</summary>${S.traits.map(t=>`<div class="small" style="margin-top:8px"><b>${TRAITS[t].name}</b> — ${TRAITS[t].text}</div>`).join('')}</details>` : `<div class="small muted" style="margin:0 0 10px 4px">${DIFF[S.diff]?DIFF[S.diff].label:''}: the Butcher has no traits.</div>`;
+  app.innerHTML = head + `<main><div class="a-map card" style="padding:8px">${mapPanel()}</div>${S.mind?`<div class="a-mind">${mindHTML()}</div>`:''}
+    <div class="a-side">${traitsCard}${side}<div class="card" style="margin-top:14px"><h2>Log</h2><div class="log">${logHTML()}</div></div></div></main>`;
+  placeBoardImg();
+  if(PROMPT && window.innerWidth<900){ const el=document.querySelector('.prompt'); if(el) el.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-act],[data-node]'); if(!el) return;
+  if(el.dataset.node && !el.dataset.act){ if(S && S.phase==='survivors'){ toggleNoise(el.dataset.node); } return; }
+  const a = el.dataset.act;
+  // board image view
+  if(a==='view'){ BOARD.view=el.dataset.v; boardPrefsSave(); return render(); }
+  if(a==='stream'){ BOARD.stream=!BOARD.stream; applyStream(); boardPrefsSave(); return render(); }
+  if(a==='calib'){ return startCalib(el.dataset.from); }
+  if(a==='calclick'){ const r=el.getBoundingClientRect(); return calClick((e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height); }
+  if(a==='calback'){ return calBack(); }
+  if(a==='calskip'){ return calSkip(); }
+  if(a==='calcancel'){ return finishCalib(); }
+  if(a==='bsetup'){ BOARD.showSetup=true; BOARD.ioMsg=''; return render(); }
+  if(a==='bsetupclose'){ BOARD.showSetup=false; return setBoardMap(MAP.id); }
+  if(a==='bmap'){ return setBoardMap(el.dataset.m); }
+  if(a==='bclear'){ return clearPositions(); }
+  if(a==='bexport'){ return doExport(); }
+  if(a==='bimport'){ return doImport(); }
+  if(a==='bscale'){ BOARD.scale=Math.max(0.5, Math.min(2.5, +(BOARD.scale + +el.dataset.d).toFixed(2))); boardPrefsSave(); return render(); }
+  if(a==='bremove'){ return removeBoard(); }
+  if(a==='bpreset'){ BOARD.cal=null; boardPrefsSave(); return render(); }
+  if(a==='boardfile'){ return; }
+  // setup
+  if(a==='pick'){ const id=el.dataset.id; if(SETUP.surv.includes(id)) SETUP.surv=SETUP.surv.filter(x=>x!==id); else if(SETUP.surv.length<3) SETUP.surv.push(id); return render(); }
+  if(a==='diff'){ SETUP.diff=el.dataset.k; return render(); }
+  if(a==='start'){ if(SETUP.surv.length===3) newGame(SETUP.surv, SETUP.diff, SETUP.mind); return; }
+  if(a==='resume'){ S=SAVED_CACHE; HISTORY=[]; return render(); }
+  if(a==='discard-save'){ clearSave(); SAVED_CACHE=null; return render(); }
+  if(a==='quit'){ S=null; PROMPT=null; SAVED_CACHE=loadSaved(); if(SAVED_CACHE && SAVED_CACHE.phase==='over') { clearSave(); SAVED_CACHE=null; } return render(); }
+  if(a==='mindtoggle'){ S.mind=!S.mind; return render(); }
+  // report
+  if(a==='noise'){ toggleNoise(el.dataset.l); return; }
+  if(a==='rmblock'){ const k=el.dataset.k, r=S.report; r.removed = r.removed.includes(k)? r.removed.filter(x=>x!==k) : [...r.removed,k]; return render(); }
+  if(a==='keys'){ S.keys = Math.max(0, Math.min(5, S.keys + (+el.dataset.d))); return render(); }
+  if(a==='submit'){ return submitReport(); }
+  if(a==='undo'){ if(HISTORY.length){ S = deserialize(HISTORY.pop()); PROMPT=null; save(); render(); } return; }
+  if(a==='win-s'){ logTurn('Game over'); say('The survivors won.','info'); return gameOver('survivors'); }
+  if(a==='win-k'){ logTurn('Game over'); say('The Butcher won.','info'); return gameOver('killer'); }
+  // prompts
+  const P = PROMPT; if(!P) return;
+  if(a==='choice'){ const v=P.options[+el.dataset.i].value; PROMPT=null; P.resolve(v); return; }
+  if(a==='msel'){ const v=el.dataset.v; P.sel = P.sel.includes(v)? P.sel.filter(x=>x!==v) : [...P.sel,v]; return render(); }
+  if(a==='mconfirm'){ const v=P.sel.slice(); PROMPT=null; P.resolve(v); return; }
+  if(a==='rsel'){ P.vals[el.dataset.id]=el.dataset.v; return render(); }
+  if(a==='rconfirm'){ const out={}; P.items.forEach(it=>out[it.value]=P.vals[it.value]||P.def); PROMPT=null; P.resolve(out); return; }
+});
+document.addEventListener('change', e=>{
+  const a = e.target.dataset.act;
+  if(a==='fc'){ S.report.firecracker = e.target.checked; render(); }
+  if(a==='rescue'){ S.rescue = e.target.checked; render(); }
+  if(a==='mind'){ SETUP.mind = e.target.checked; }
+  if(a==='boardfile'){ const f = e.target.files && e.target.files[0]; e.target.value=''; loadBoardFile(f); }
+});
+function toggleNoise(l){ const r=S.report; r.noise = r.noise.includes(l)? r.noise.filter(x=>x!==l) : [...r.noise,l]; render(); }
+
+SAVED_CACHE = loadSaved();
+if(SAVED_CACHE && SAVED_CACHE.phase==='over'){ SAVED_CACHE=null; }
+render();
+boardInit();
+</script>
+</body>
+</html>
