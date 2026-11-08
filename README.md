@@ -2,7 +2,7 @@
 
 A web app that plays the **killer** in the board game *Terrorscape* (Ice Makes, 2023), so you can play solo as the three survivors.
 
-**Play it:** https://<your-username>.github.io/terrorscape-solo-killer/
+**Play it:** https://jourdo2k3.github.io/Terrorscape-Solo-Killer-App/
 
 The app sits "behind the screen." It holds the killer's deck and hand, decides his moves, and asks you only what the real rules make survivors reveal. You play the survivors on your physical board, and the app tells you where the killer goes and what he does.
 
